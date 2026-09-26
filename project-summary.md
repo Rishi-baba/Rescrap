@@ -61,20 +61,20 @@ INFORMAL COLLECTION → DIGITAL LOT → MATERIAL INTELLIGENCE
 - Monorepo structure established (pnpm workspaces, strict TypeScript base config)
 - `packages/shared`: shared domain model, lot lifecycle state machine, engines, i18n (en/hi/mr), Zod boundary schemas
 - `packages/shared`: in-memory demo service implementing the same `ReScrapService` interface the real API client will implement
-- `packages/shared`: 77 passing tests, including the critical end-to-end loop on one shared Lot, idempotency/duplicate prevention, authorization boundaries, trust controls, weight-discrepancy hold, earnings ledger, and admin audit
-- `pnpm run verify` (typecheck → test → build) passes for all existing packages
+- `apps/api`: Fastify + Zod API service implementing OTP/JWT auth, role authorization, rate limiting, and demo envelope responses
+- `apps/admin-web`: Vite + React + Tailwind CSS Admin Console covering Dashboard, Verification Queue, Lot Monitoring, Audit Trail, Price Governance, and Exceptions
+- 121 passing tests across all workspace packages; production build succeeds cleanly
+- `pnpm run verify` (typecheck → test → build) passes for all packages
 
 ### In progress
 
-- Phase 0 completion: `packages/design-system`, `apps/api`, `apps/collector`, `apps/recycler-web`, `apps/admin-web` are **not yet created**
+- Phase 0 completion: `packages/design-system`, `apps/collector`, `apps/recycler-web`
 
 ### Not started
 
 - `packages/design-system` (tokens + shared components)
-- `apps/api` — Fastify + Zod, OTP/JWT auth, server-side role authorization, repository-backed routes
 - `apps/collector` — React Native + Expo shell and the screen sequence 01–21
 - `apps/recycler-web` — Recycler Portal
-- `apps/admin-web` — Admin Console
 - Phase 1 (Collector MVP): photo capture, material identification, weight, estimate, offline database, outbox sync
 - Phase 2 (Recycler MVP): search/filter, offer submission
 - Phase 3 (Shared transaction UI): acceptance, handover, payment, Lot Passport, traceability surfaces
@@ -233,16 +233,16 @@ Documentation (complete):
 `prd.md` · `system-architecture.md` · `technical-approach.md` · `rules-and-risk-controls.md` · `goals-and-roadmap.md` · `workflow-and-security.md` · `frontend-discussion.md` · `frontend-requirements.md` · `project-summary.md` · `changelog.md`
 
 Implemented:
-`package.json` · `pnpm-workspace.yaml` · `tsconfig.base.json` · `.gitignore` · `.env.example` · `packages/shared/**`
+`package.json` · `pnpm-workspace.yaml` · `tsconfig.base.json` · `.gitignore` · `.env.example` · `packages/shared/**` · `apps/api/**` · `apps/admin-web/**`
 
 Planned, not yet on disk:
-`packages/design-system/**` · `apps/api/**` · `apps/collector/**` · `apps/recycler-web/**` · `apps/admin-web/**`
+`packages/design-system/**` · `apps/collector/**` · `apps/recycler-web/**`
 
 ## 14. Next milestone
 
-**`packages/design-system`, then `apps/api`.**
+**`packages/design-system`, then `apps/recycler-web` / `apps/collector`.**
 
-The API must sit on the same domain model, lifecycle and engines already implemented in `packages/shared`, behind the same `ReScrapService` interface the demo service satisfies — so the collector, recycler and admin applications can be built against a real HTTP boundary without the domain rules ever being re-implemented.
+With `packages/shared`, `apps/api` and `apps/admin-web` verified and passing 121 tests, the next step is establishing the shared design system tokens and building the Recycler Portal and Collector applications.
 
 ---
 

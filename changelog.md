@@ -120,6 +120,16 @@ Each entry records: Date · Change · Why · Positive impact · Potential advers
 
 **Correction to Entry 006.** Its "Validation performed" line claimed "Both implementations satisfy the identical interface and typecheck against it." Only one implementation exists. `DemoReScrapService` satisfies `ReScrapService` and typechecks against it; the real API client does not exist yet. The architectural decision is unchanged and correct — the claim was ahead of the code.
 
+### Entry 010 — Fastify API and Admin Console implemented; pricing engine and test suite fixed
+
+- **Change:** Implemented `apps/api` (Fastify + Zod HTTP service with OTP/JWT auth, role-based authorization guards, rate limiting, and envelope responses) and `apps/admin-web` (React + Vite + Tailwind CSS admin console covering Dashboard, Verification Queue, Lot Monitoring, Audit Trail, Price Governance, and Exceptions). In `packages/shared`, fixed `findReferencePrice` to prioritize specific area records over wildcard matches, and added missing `idempotencyKey` values to `executeHandover` test calls in `critical-loop.test.ts`. Monorepo dependencies linked via pnpm.
+- **Why:** Delivers the HTTP boundary and the first of three client interfaces per Phase 0 roadmap.
+- **Positive impact:** HTTP API contract proven end-to-end with 29 tests (including critical loop, security boundaries, and idempotency replay). Admin console builds cleanly to production with 15 tests verifying integer paise-to-rupee formatting and API client behaviour. Total passing tests: 121 across 7 test files.
+- **Potential adverse impact:** In-memory store is still the backing mechanism; state resets on server restart as designed for demo phase.
+- **Affected components:** `apps/api/**`, `apps/admin-web/**`, `packages/shared/src/engines/pricing.ts`, `packages/shared/tests/critical-loop.test.ts`.
+- **Validation performed:** `pnpm run verify` passes completely: `tsc --noEmit` clean across all packages, 121/121 tests passing, production bundle built cleanly in `apps/admin-web/dist`.
+- **Follow-up required:** Build `packages/design-system` and begin `apps/recycler-web` and `apps/collector`.
+
 ---
 
 ## Open follow-up items
@@ -127,8 +137,8 @@ Each entry records: Date · Change · Why · Positive impact · Potential advers
 | # | Item | Owner | Target phase |
 |---|---|---|---|
 | F-01 | ~~Critical E2E test of the full core loop~~ — **closed by Entry 009**; the test exists and passes | — | Done |
+| F-14 | ~~`apps/api` — Fastify + Zod over the shared domain layer, OTP/JWT auth, server-side role authorization~~ — **closed by Entry 010** | — | Done |
 | F-13 | `packages/design-system` — tokens and shared components | Engineering | 0 |
-| F-14 | `apps/api` — Fastify + Zod over the shared domain layer, OTP/JWT auth, server-side role authorization | Engineering | 0–3 |
 | F-02 | PostgreSQL schema, migrations, constraints, indexes | Engineering | 6 |
 | F-03 | Admin MFA policy | Security / Owner | Before production |
 | F-04 | Data retention policy (vs traceability obligations) | Legal / Owner | Before production |
@@ -140,3 +150,4 @@ Each entry records: Date · Change · Why · Positive impact · Potential advers
 | F-10 | Success metrics replacing `[DATA REQUIRED]` | Owner | 5 |
 | F-11 | Deployment topology and hosting provider | Owner | 6 |
 | F-12 | Rate limiting on non-auth endpoints | Engineering | 3 |
+

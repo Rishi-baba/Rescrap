@@ -119,6 +119,7 @@ describe('critical end-to-end loop on ONE shared Lot', () => {
       finalWeightKg: kg(12.5),
       photoKeys: ['demo://photo/handover-1.jpg'],
       location: { lat: 18.5089, lng: 73.853 },
+      idempotencyKey: key(),
     });
     expect(executed.state).toBe('EXECUTED');
     expect(executed.finalWeightKg).toBe(12.5);
@@ -449,6 +450,7 @@ describe('weight discrepancy hold (HAND-04)', () => {
       finalWeightKg: kg(25), // 150% over declared
       photoKeys: ['demo://photo/h.jpg'],
       location: { lat: 18.5, lng: 73.8 },
+      idempotencyKey: key(),
     });
     expect(executed.requiresReview).toBe(true);
 
@@ -506,6 +508,7 @@ describe('earnings ledger (EARN-01, EARN-02)', () => {
       finalWeightKg: kg(5),
       photoKeys: ['demo://photo/h.jpg'],
       location: { lat: 18.5, lng: 73.8 },
+      idempotencyKey: key(),
     });
     await signInAsCollector(service);
     await service.verifyHandover(handover.id, false, key());

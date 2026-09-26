@@ -92,7 +92,14 @@ export function findReferencePrice(
       return from <= t && t < to;
     })
     .filter((r) => r.area === area || r.area === '*' || area === ANY_AREA)
-    .sort((a, b) => Date.parse(b.effectiveFrom) - Date.parse(a.effectiveFrom));
+    .sort((a, b) => {
+      const aExact = a.area === area ? 1 : 0;
+      const bExact = b.area === area ? 1 : 0;
+      if (aExact !== bExact) {
+        return bExact - aExact;
+      }
+      return Date.parse(b.effectiveFrom) - Date.parse(a.effectiveFrom);
+    });
 
   const record = candidates[0];
   if (!record) {
