@@ -63,20 +63,19 @@ INFORMAL COLLECTION → DIGITAL LOT → MATERIAL INTELLIGENCE
 - `packages/shared`: in-memory demo service implementing the same `ReScrapService` interface the real API client will implement
 - `apps/api`: Fastify + Zod API service implementing OTP/JWT auth, role authorization, rate limiting, and demo envelope responses
 - `apps/admin-web`: Vite + React + Tailwind CSS Admin Console covering Dashboard, Verification Queue, Lot Monitoring, Audit Trail, Price Governance, and Exceptions
-- 121 passing tests across all workspace packages; production build succeeds cleanly
+- `packages/design-system`: Deep Forest + Impact Green token system, Inter typography, accessible UI components (`Button`, `Badge`, `StatusPill`, `Input`, `Select`, `Card`, `Modal`, `PriceDisplay`, `EmptyState`, `LoadingState`, `ErrorState`, `FilterChip`, `DemoBanner`, `DataTable`)
+- `apps/recycler-web`: Vite + React + Tailwind CSS Recycler Portal covering screens B-01 through B-10 (Login, Dashboard with 6 metrics, Available Lots with faceted filtering, Offers, Lot Detail & Make Offer modal, Active Deals, Pickup Scheduling, Handover Execution with discrepancy check, Transactions ledger, and Profile)
+- 132 passing tests across all workspace packages; production builds succeed cleanly
 - `pnpm run verify` (typecheck → test → build) passes for all packages
 
 ### In progress
 
-- Phase 0 completion: `packages/design-system`, `apps/collector`, `apps/recycler-web`
+- Phase 0 completion: `apps/collector`
 
 ### Not started
 
-- `packages/design-system` (tokens + shared components)
 - `apps/collector` — React Native + Expo shell and the screen sequence 01–21
-- `apps/recycler-web` — Recycler Portal
 - Phase 1 (Collector MVP): photo capture, material identification, weight, estimate, offline database, outbox sync
-- Phase 2 (Recycler MVP): search/filter, offer submission
 - Phase 3 (Shared transaction UI): acceptance, handover, payment, Lot Passport, traceability surfaces
 - Phase 4 (AI/ML) — blocked on accumulated transaction data
 - Phase 5 (Field validation) — blocked on real recycler participation
@@ -233,16 +232,16 @@ Documentation (complete):
 `prd.md` · `system-architecture.md` · `technical-approach.md` · `rules-and-risk-controls.md` · `goals-and-roadmap.md` · `workflow-and-security.md` · `frontend-discussion.md` · `frontend-requirements.md` · `project-summary.md` · `changelog.md`
 
 Implemented:
-`package.json` · `pnpm-workspace.yaml` · `tsconfig.base.json` · `.gitignore` · `.env.example` · `packages/shared/**` · `apps/api/**` · `apps/admin-web/**`
+`package.json` · `pnpm-workspace.yaml` · `tsconfig.base.json` · `.gitignore` · `.env.example` · `packages/shared/**` · `packages/design-system/**` · `apps/api/**` · `apps/admin-web/**` · `apps/recycler-web/**`
 
 Planned, not yet on disk:
-`packages/design-system/**` · `apps/collector/**` · `apps/recycler-web/**`
+`apps/collector/**`
 
 ## 14. Next milestone
 
-**`packages/design-system`, then `apps/recycler-web` / `apps/collector`.**
+**`apps/collector` (React Native / Expo mobile application).**
 
-With `packages/shared`, `apps/api` and `apps/admin-web` verified and passing 121 tests, the next step is establishing the shared design system tokens and building the Recycler Portal and Collector applications.
+With `packages/shared`, `packages/design-system`, `apps/api`, `apps/admin-web`, and `apps/recycler-web` verified with 132 passing tests and green builds, the final remaining client interface is the low-literacy, offline-first Android Collector App.
 
 ---
 

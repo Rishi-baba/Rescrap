@@ -130,6 +130,16 @@ Each entry records: Date · Change · Why · Positive impact · Potential advers
 - **Validation performed:** `pnpm run verify` passes completely: `tsc --noEmit` clean across all packages, 121/121 tests passing, production bundle built cleanly in `apps/admin-web/dist`.
 - **Follow-up required:** Build `packages/design-system` and begin `apps/recycler-web` and `apps/collector`.
 
+### Entry 011 — Design system and Recycler Portal implemented and verified
+
+- **Change:** Implemented `@rescrap/design-system` (design tokens, Inter typography, accessible components: `Button`, `Badge`, `StatusPill`, `Input`, `Select`, `Card`, `Modal`, `PriceDisplay`, `EmptyState`, `LoadingState`, `ErrorState`, `FilterChip`, `DemoBanner`, `DataTable`) and `@rescrap/recycler-web` (Recycler Portal covering screens B-01 to B-10: Login, Operations Dashboard with 6 justified metrics, Available Lots with faceted filters, Offers with tabs, Lot Detail & Make Offer modal, Active Deals, Pickup Scheduling, Handover Execution with discrepancy check, Immutable Transactions ledger, and Facility Profile).
+- **Why:** Establishes the shared design system (F-13) and delivers the Recycler operational web portal per Phase 0/2 roadmap.
+- **Positive impact:** Two of three ReScrap applications (Admin Console and Recycler Portal) are now fully implemented and share the same design language, domain models, and API client contracts. Total passing tests: 132 across 9 test suites. Production builds succeed cleanly.
+- **Potential adverse impact:** None.
+- **Affected components:** `packages/design-system/**`, `apps/recycler-web/**`.
+- **Validation performed:** `pnpm run verify` passes completely across all 5 packages: `tsc --noEmit` clean, 132/132 tests passing, production bundles built in `apps/admin-web/dist` and `apps/recycler-web/dist`.
+- **Follow-up required:** Next deliverable is `apps/collector` (React Native / Expo mobile app).
+
 ---
 
 ## Open follow-up items
@@ -138,7 +148,7 @@ Each entry records: Date · Change · Why · Positive impact · Potential advers
 |---|---|---|---|
 | F-01 | ~~Critical E2E test of the full core loop~~ — **closed by Entry 009**; the test exists and passes | — | Done |
 | F-14 | ~~`apps/api` — Fastify + Zod over the shared domain layer, OTP/JWT auth, server-side role authorization~~ — **closed by Entry 010** | — | Done |
-| F-13 | `packages/design-system` — tokens and shared components | Engineering | 0 |
+| F-13 | ~~`packages/design-system` — tokens and shared components~~ — **closed by Entry 011** | — | Done |
 | F-02 | PostgreSQL schema, migrations, constraints, indexes | Engineering | 6 |
 | F-03 | Admin MFA policy | Security / Owner | Before production |
 | F-04 | Data retention policy (vs traceability obligations) | Legal / Owner | Before production |
