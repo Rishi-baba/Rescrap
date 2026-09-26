@@ -12,12 +12,12 @@ const DEV_ONLY_SECRET = 'dev-only-insecure-secret-do-not-use-in-production';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   API_HOST: z.string().default('0.0.0.0'),
-  API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  API_PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   RESCRAP_JWT_SECRET: z.string().min(16).default(DEV_ONLY_SECRET),
   RESCRAP_OTP_DELIVERY: z.enum(['console', 'disabled']).default('console'),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(900),
   REFRESH_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(2_592_000),
-  CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:5174'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175,http://127.0.0.1:5176'),
   /** Auth rate limit. Rule F-12 / workflow-and-security.md 5. */
   AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
   AUTH_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),

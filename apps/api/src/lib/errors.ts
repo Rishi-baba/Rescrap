@@ -58,7 +58,13 @@ export function toHttpError(err: unknown): { status: number; shape: ApiErrorShap
   if (err instanceof DemoError) {
     return { status: STATUS_BY_CODE[err.shape.code] ?? 400, shape: err.shape };
   }
-  // Anything unrecognised is a server fault. The detail stays in the log.
+  if (err && typeof err === 'object' && 'statusCode' in err && typeof (err as { statusCode: unknown }).statusCode === 'number') {
+    const status = (err as { statusCode: number }).statusCode;
+    return {
+      status,
+      shape: { code: status === 400 ? 'INVALID_INPUT' : 'INTERNAL', message: (err as Error).message || 'Invalid request' },
+    };
+  }
   return {
     status: 500,
     shape: { code: 'INTERNAL', message: 'Something went wrong on our side. Please try again.' },
