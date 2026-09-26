@@ -51,5 +51,8 @@ export type {
   ClassificationResultView,
   OtpRequestResult,
   ApiErrorShape,
+  ApiEnvelope,
+  LotRecord,
 } from './services/contract.js';
-export { DemoReScrapService } from './services/demo.js';
+export { DemoReScrapService, DemoError, resetDemoState } from './services/demo.js';
+export type { DemoReScrapSession } from './services/demo.js';

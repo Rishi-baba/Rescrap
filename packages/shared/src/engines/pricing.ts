@@ -19,6 +19,17 @@ import type {
 
 export type ConditionFactorTable = Readonly<Record<LotCondition, number>>;
 
+/**
+ * Sentinel area meaning "any area".
+ *
+ * The price board asks for the current price of every material without
+ * knowing which areas exist. Without this, that lookup returns nothing at all
+ * and the admin price management screen is permanently empty. A specific area
+ * still wins when both match, because the sort below prefers the newest
+ * effective record.
+ */
+export const ANY_AREA = 'all';
+
 /** Rule PRD price discovery: condition adjusts the reference rate. */
 export const CONDITION_FACTORS: ConditionFactorTable = {
   GOOD: 1,
@@ -80,7 +91,7 @@ export function findReferencePrice(
       const t = now.getTime();
       return from <= t && t < to;
     })
-    .filter((r) => r.area === area || r.area === '*')
+    .filter((r) => r.area === area || r.area === '*' || area === ANY_AREA)
     .sort((a, b) => Date.parse(b.effectiveFrom) - Date.parse(a.effectiveFrom));
 
   const record = candidates[0];

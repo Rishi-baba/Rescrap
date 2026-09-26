@@ -38,6 +38,7 @@ import type {
   TraceabilityRecord,
   TraceabilityEventType,
   Transaction,
+  User,
 } from '../domain/types.js';
 import type {
   AdminId,
@@ -98,7 +99,11 @@ import {
 
 const SIMULATED_LATENCY_MS = 140;
 
-class DemoError extends Error {
+/**
+ * Business rejection carrying the shared ApiErrorShape. The API maps `code`
+ * to an HTTP status; it never leaks a stack trace (technical-approach.md 7.4).
+ */
+export class DemoError extends Error {
   readonly shape: ApiErrorShape;
 
   constructor(shape: ApiErrorShape) {
@@ -161,7 +166,11 @@ interface DemoState {
   /** Rule FRD-03: idempotency key -> original result. The duplicate defence. */
   idempotency: Map<string, { entity: string; id: string }>;
   lotSequence: number;
-  session: { role: Role; userId: string } | null;
+  /**
+   * The session is deliberately NOT stored here. Data is shared (one Lot,
+   * visible to every role) but identity is per-client, so the session lives
+   * on the service instance. See DemoReScrapSession.
+   */
 }
 
 function freshState(): DemoState {
@@ -184,7 +193,6 @@ function freshState(): DemoState {
     predictions: demoAiPredictions.map((p) => ({ ...p })),
     idempotency: new Map(),
     lotSequence: 1,
-    session: null,
   };
 }
 
@@ -209,19 +217,19 @@ function now(): string {
   return new Date().toISOString();
 }
 
-function currentUser() {
-  if (!state.session) {
+function currentUser(session: DemoReScrapSession): User {
+  if (!session.current) {
     throw new DemoError({ code: 'UNAUTHENTICATED', message: 'Please sign in to continue.' });
   }
-  const user = state.users.get(state.session.userId);
+  const user = state.users.get(session.current.userId);
   if (!user) {
     throw new DemoError({ code: 'UNAUTHENTICATED', message: 'Please sign in to continue.' });
   }
   return user;
 }
 
-function currentCollector(): Collector {
-  const user = currentUser();
+function currentCollector(session: DemoReScrapSession): Collector {
+  const user = currentUser(session);
   if (user.role !== 'COLLECTOR') {
     throw forbidden('collector data');
   }
@@ -232,8 +240,8 @@ function currentCollector(): Collector {
   return collector;
 }
 
-function currentRecycler(): Recycler {
-  const user = currentUser();
+function currentRecycler(session: DemoReScrapSession): Recycler {
+  const user = currentUser(session);
   if (user.role !== 'RECYCLER') {
     throw forbidden('recycler data');
   }
@@ -242,6 +250,16 @@ function currentRecycler(): Recycler {
     throw notFound('Recycler profile');
   }
   return recycler;
+}
+
+/** Actor for audit records. Rule AUD-01: every record names a real actor. */
+const SYSTEM_ACTOR: UserId = 'usr_system' as UserId;
+
+function actorId(session: DemoReScrapSession): UserId {
+  if (!session.current) {
+    return SYSTEM_ACTOR;
+  }
+  return state.users.get(session.current.userId)?.id ?? SYSTEM_ACTOR;
 }
 
 function materialById(id: string): Material {
@@ -260,22 +278,30 @@ function lotById(id: string): Lot {
   return lot;
 }
 
+/**
+ * Per-client identity. Data lives in the shared store; the caller identity
+ * does not. A server handling three roles at once must not share a session.
+ */
+export interface DemoReScrapSession {
+  current: { role: Role; userId: string } | null;
+}
+
 function appendTrace(
-  lotId: string,
+  session: DemoReScrapSession,
+  lotId: LotId,
   event: TraceabilityEventType,
   actorRole: Role,
   detail: string,
   evidenceKeys: string[] = [],
 ): void {
   const chain = state.trace.get(lotId) ?? [];
-  const user = state.session ? state.users.get(state.session.userId) : undefined;
   chain.push({
     id: `trc_${lotId}_${chain.length + 1}` as import('../domain/ids.js').TraceabilityRecordId,
-    lotId: lotId as LotId,
+    lotId,
     sequence: chain.length + 1,
     event,
     at: now(),
-    actorUserId: (user?.id ?? 'usr_system') as UserId,
+    actorUserId: actorId(session),
     actorRole,
     detail,
     evidenceKeys,
@@ -285,17 +311,17 @@ function appendTrace(
 }
 
 function transition(
+  session: DemoReScrapSession,
   lot: Lot,
   trigger: LotTransitionTrigger,
   actorRole: Role,
   reason?: string,
 ): Lot {
-  const user = state.session ? state.users.get(state.session.userId) : undefined;
   const result = nextState({
     state: lot.state,
     trigger,
     actorRole,
-    actorUserId: (user?.id ?? 'usr_system') as UserId,
+    actorUserId: actorId(session),
     at: now(),
     ...(reason ? { reason } : {}),
     preconditions: { hasAtLeastOneItem: lot.items.length > 0 },
@@ -311,7 +337,7 @@ function transition(
 
   const updated: Lot = { ...lot, state: result.to, updatedAt: now() };
   state.lots.set(lot.id, updated);
-  appendTrace(lot.id, traceEventFor(trigger), actorRole, reason ?? trigger);
+  appendTrace(session, lot.id, traceEventFor(trigger), actorRole, reason ?? trigger);
   return updated;
 }
 
@@ -477,7 +503,13 @@ function toAdminView(lot: Lot): AdminLotView {
  * The service
  * ------------------------------------------------------------------ */
 
-export class DemoReScrapService implements ReScrapService {
+export class DemoReScrapService implements ReScrapService, DemoReScrapSession {
+  /**
+   * Identity for THIS client only. The data store is shared so collector,
+   * recycler and admin all see the same Lot; the session is not.
+   */
+  current: { role: Role; userId: string } | null = null;
+
   /** Test/demo affordance: wipe all state back to seed. */
   reset(): void {
     resetDemoState();
@@ -507,13 +539,13 @@ export class DemoReScrapService implements ReScrapService {
     if (!user) {
       throw notFound('Account');
     }
-    state.session = { role, userId: user.id };
+    this.current = { role, userId: user.id };
     return this.currentUser() as Promise<AuthSession>;
   }
 
   async refresh(_refreshToken: string): Promise<AuthSession> {
     await delay();
-    if (!state.session) {
+    if (!this.current) {
       throw new DemoError({ code: 'UNAUTHENTICATED', message: 'Please sign in to continue.' });
     }
     return this.currentUser() as Promise<AuthSession>;
@@ -521,14 +553,14 @@ export class DemoReScrapService implements ReScrapService {
 
   async logout(): Promise<void> {
     await delay();
-    state.session = null;
+    this.current = null;
   }
 
   async currentUser(): Promise<AuthSession | null> {
-    if (!state.session) {
+    if (!this.current) {
       return null;
     }
-    const user = state.users.get(state.session.userId);
+    const user = state.users.get(this.current.userId);
     if (!user) {
       return null;
     }
@@ -541,9 +573,9 @@ export class DemoReScrapService implements ReScrapService {
     baseArea?: string;
   }): Promise<AuthSession> {
     await delay();
-    const user = currentUser();
+    const user = currentUser(this);
     if (user.role === 'COLLECTOR') {
-      const collector = currentCollector();
+      const collector = currentCollector(this);
       const updated: Collector = {
         ...collector,
         displayName: input.displayName,
@@ -657,7 +689,7 @@ export class DemoReScrapService implements ReScrapService {
     idempotencyKey: string;
   }): Promise<CollectorLotView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
 
     // Rule FRD-03: an idempotency key already seen returns the ORIGINAL lot.
     const existing = state.idempotency.get(input.idempotencyKey);
@@ -719,18 +751,18 @@ export class DemoReScrapService implements ReScrapService {
     state.idempotency.set(input.idempotencyKey, { entity: 'LOT', id });
 
     for (const item of items) {
-      appendTrace(id, 'PHOTO_CAPTURED', 'COLLECTOR', `Photo attached for ${item.materialId}`);
-      appendTrace(id, 'MATERIAL_IDENTIFIED', 'COLLECTOR', `Material confirmed: ${item.materialId}`);
-      appendTrace(id, 'WEIGHT_CAPTURED', 'COLLECTOR', `Declared weight: ${item.declaredWeightKg} kg`);
+      appendTrace(this, id, 'PHOTO_CAPTURED', 'COLLECTOR', `Photo attached for ${item.materialId}`);
+      appendTrace(this, id, 'MATERIAL_IDENTIFIED', 'COLLECTOR', `Material confirmed: ${item.materialId}`);
+      appendTrace(this, id, 'WEIGHT_CAPTURED', 'COLLECTOR', `Declared weight: ${item.declaredWeightKg} kg`);
     }
-    appendTrace(id, 'ESTIMATE_COMPUTED', 'COLLECTOR', `Estimated value: ${draft.estimatedValue} paise (rule-based)`);
+    appendTrace(this, id, 'ESTIMATE_COMPUTED', 'COLLECTOR', `Estimated value: ${draft.estimatedValue} paise (rule-based)`);
 
     return toCollectorView(draft);
   }
 
   async submitLot(lotId: string, idempotencyKey: string): Promise<CollectorLotView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     const replay = replayIfSeen(idempotencyKey, 'LOT_SUBMIT', (id) => toCollectorView(lotById(id)));
     if (replay) {
       return replay;
@@ -740,8 +772,8 @@ export class DemoReScrapService implements ReScrapService {
       throw forbidden('scrap');
     }
     if (lot.state === 'DRAFT') {
-      lot = transition(lot, 'SUBMIT', 'COLLECTOR', 'Collector submitted the scrap');
-      lot = transition(lot, 'MATCH_RUN', 'COLLECTOR', 'Searching for verified recyclers');
+      lot = transition(this, lot, 'SUBMIT', 'COLLECTOR', 'Collector submitted the scrap');
+      lot = transition(this, lot, 'MATCH_RUN', 'COLLECTOR', 'Searching for verified recyclers');
     }
     state.idempotency.set(idempotencyKey, { entity: 'LOT_SUBMIT', id: lot.id });
     return toCollectorView(lot);
@@ -749,7 +781,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async listMyLots(): Promise<CollectorLotView[]> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     return [...state.lots.values()]
       .filter((l) => l.collectorId === collector.id)
       .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
@@ -758,7 +790,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async getMyLot(lotId: string): Promise<CollectorLotView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     const lot = lotById(lotId);
     if (lot.collectorId !== collector.id) {
       throw forbidden('scrap');
@@ -768,7 +800,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async matchRecyclers(lotId: string): Promise<RecyclerMatch[]> {
     await delay();
-    currentCollector();
+    currentCollector(this);
     const lot = lotById(lotId);
     const categoryIds = [
       ...new Set(lot.items.map((i) => materialById(i.materialId).categoryId)),
@@ -800,7 +832,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async acceptOffer(offerId: string, idempotencyKey: string): Promise<CollectorLotView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     const replay = replayIfSeen(idempotencyKey, 'OFFER_ACCEPT', (id) => {
       const offer = state.offers.get(id);
       return offer ? toCollectorView(lotById(offer.lotId)) : toCollectorView(lotById(id));
@@ -845,7 +877,7 @@ export class DemoReScrapService implements ReScrapService {
     let updated = lotById(offer.lotId);
     updated = { ...updated, acceptedOfferId: accepted.id, updatedAt: now() };
     state.lots.set(updated.id, updated);
-    updated = transition(updated, 'OFFER_ACCEPTED', 'COLLECTOR', `Accepted offer of ${accepted.amount} paise`);
+    updated = transition(this, updated, 'OFFER_ACCEPTED', 'COLLECTOR', `Accepted offer of ${accepted.amount} paise`);
     state.idempotency.set(idempotencyKey, { entity: 'OFFER_ACCEPT', id: offer.id });
 
     return toCollectorView(updated);
@@ -853,7 +885,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async declineOffer(offerId: string, idempotencyKey: string): Promise<CollectorLotView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     const replay = replayIfSeen(idempotencyKey, 'OFFER_DECLINE', (id) => {
       const offer = state.offers.get(id);
       return offer ? toCollectorView(lotById(offer.lotId)) : toCollectorView(lotById(id));
@@ -881,7 +913,7 @@ export class DemoReScrapService implements ReScrapService {
     idempotencyKey: string,
   ): Promise<CollectorLotView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     const replay = replayIfSeen(idempotencyKey, 'HANDOVER_VERIFY', (id) => {
       const handover = state.handovers.get(id);
       return handover ? toCollectorView(lotById(handover.lotId)) : toCollectorView(lotById(id));
@@ -919,8 +951,8 @@ export class DemoReScrapService implements ReScrapService {
     state.handovers.set(verified.id, verified);
 
     let lot = state.lots.get(verified.lotId) ?? ownedLot;
-    lot = transition(lot, 'HANDOVER_CONFIRMED', 'COLLECTOR', 'Collector verified the handover');
-    appendTrace(lot.id, 'RECYCLER_CONFIRMED', 'RECYCLER', 'Recycler confirmed receipt');
+    lot = transition(this, lot, 'HANDOVER_CONFIRMED', 'COLLECTOR', 'Collector verified the handover');
+    appendTrace(this, lot.id, 'RECYCLER_CONFIRMED', 'RECYCLER', 'Recycler confirmed receipt');
 
     // Payment record is created here. Amount is server-computed.
     const offer = lot.acceptedOfferId ? state.offers.get(lot.acceptedOfferId) : undefined;
@@ -948,7 +980,7 @@ export class DemoReScrapService implements ReScrapService {
       state.payments.set(paymentId, payment);
       lot = { ...lot, paymentId, updatedAt: now() };
       state.lots.set(lot.id, lot);
-      appendTrace(lot.id, 'PAYMENT_RECORDED', 'COLLECTOR', `Payment recorded (SIMULATED): ${amount} paise`);
+      appendTrace(this, lot.id, 'PAYMENT_RECORDED', 'COLLECTOR', `Payment recorded (SIMULATED): ${amount} paise`);
 
       // Rule TXN-01/02: one lot yields at most one transaction.
       const transactionId = `txn_${lot.id}` as TransactionId;
@@ -986,7 +1018,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async getPassport(lotId: string): Promise<LotPassportView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     const lot = lotById(lotId);
     if (lot.collectorId !== collector.id) {
       throw forbidden('scrap');
@@ -1045,7 +1077,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async getEarnings(): Promise<EarningsView> {
     await delay();
-    const collector = currentCollector();
+    const collector = currentCollector(this);
     const lotIds = new Set(
       [...state.lots.values()].filter((l) => l.collectorId === collector.id).map((l) => l.id),
     );
@@ -1092,7 +1124,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async listMyNotifications(): Promise<AppNotification[]> {
     await delay();
-    const user = currentUser();
+    const user = currentUser(this);
     return state.notifications.get(user.id) ?? [];
   }
 
@@ -1100,7 +1132,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async recyclerDashboard(): Promise<RecyclerDashboardView> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
     const openLots = [...state.lots.values()].filter((l) => isOfferEligible(l.state));
     const myOffers = [...state.offers.values()].filter((o) => o.recyclerId === recycler.id);
     const myDeals = myOffers.filter((o) => o.state === 'ACCEPTED');
@@ -1156,7 +1188,7 @@ export class DemoReScrapService implements ReScrapService {
     maxWeightKg?: number;
   }): Promise<RecyclerLotView[]> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
 
     // Rule RECY-02: only VERIFIED recyclers are served at all.
     if (recycler.authorizationStatus !== 'VERIFIED') {
@@ -1189,7 +1221,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async getRecyclerLot(lotId: string): Promise<RecyclerLotView> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
     if (recycler.authorizationStatus !== 'VERIFIED') {
       throw forbidden('scrap listings');
     }
@@ -1205,7 +1237,7 @@ export class DemoReScrapService implements ReScrapService {
     idempotencyKey: string;
   }): Promise<RecyclerOffer> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
 
     // Rule RECY-01: only VERIFIED recyclers may submit offers.
     if (recycler.authorizationStatus !== 'VERIFIED') {
@@ -1258,7 +1290,7 @@ export class DemoReScrapService implements ReScrapService {
     state.idempotency.set(input.idempotencyKey, { entity: 'OFFER', id });
 
     if (lot.state === 'MATCHING') {
-      transition(lot, 'OFFER_MADE', 'RECYCLER', 'Offer submitted');
+      transition(this, lot, 'OFFER_MADE', 'RECYCLER', 'Offer submitted');
     }
 
     return offer;
@@ -1266,7 +1298,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async listMyOffers(): Promise<RecyclerOffer[]> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
     return [...state.offers.values()]
       .filter((o) => o.recyclerId === recycler.id)
       .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
@@ -1278,7 +1310,7 @@ export class DemoReScrapService implements ReScrapService {
     idempotencyKey: string,
   ): Promise<Handover> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
     const replay = state.idempotency.get(idempotencyKey);
     if (replay && replay.entity === 'HANDOVER') {
       const prior = state.handovers.get(replay.id);
@@ -1313,7 +1345,7 @@ export class DemoReScrapService implements ReScrapService {
     state.handovers.set(id, handover);
     lot = { ...lot, handoverId: id, updatedAt: now() };
     state.lots.set(lot.id, lot);
-    transition(lot, 'PICKUP_SCHEDULED', 'RECYCLER', `Pickup scheduled for ${scheduledFor}`);
+    transition(this, lot, 'PICKUP_SCHEDULED', 'RECYCLER', `Pickup scheduled for ${scheduledFor}`);
     state.idempotency.set(idempotencyKey, { entity: 'HANDOVER', id });
 
     return handover;
@@ -1324,9 +1356,21 @@ export class DemoReScrapService implements ReScrapService {
     finalWeightKg: WeightKg;
     photoKeys: string[];
     location: Coordinates;
+    idempotencyKey: string;
   }): Promise<Handover> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
+
+    // Rule FRD-03: a replayed execution returns the original record rather
+    // than a second set of evidence.
+    const replay = state.idempotency.get(input.idempotencyKey);
+    if (replay && replay.entity === 'HANDOVER_EXECUTE') {
+      const prior = state.handovers.get(replay.id);
+      if (prior) {
+        return prior;
+      }
+    }
+
     const handover = state.handovers.get(input.handoverId);
     if (!handover) {
       throw notFound('Handover');
@@ -1364,14 +1408,15 @@ export class DemoReScrapService implements ReScrapService {
     state.handovers.set(executed.id, executed);
 
     let lot = lotById(executed.lotId);
-    lot = transition(lot, 'HANDOVER_EXECUTED', 'RECYCLER', `Final weight ${input.finalWeightKg} kg`);
+    lot = transition(this, lot, 'HANDOVER_EXECUTED', 'RECYCLER', `Final weight ${input.finalWeightKg} kg`);
+    state.idempotency.set(input.idempotencyKey, { entity: 'HANDOVER_EXECUTE', id: executed.id });
 
     return executed;
   }
 
   async confirmHandover(handoverId: string, idempotencyKey: string): Promise<Handover> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
     const replay = state.idempotency.get(idempotencyKey);
     if (replay && replay.entity === 'HANDOVER_CONFIRM') {
       const prior = state.handovers.get(replay.id);
@@ -1400,13 +1445,13 @@ export class DemoReScrapService implements ReScrapService {
 
   async listTransactions(): Promise<Transaction[]> {
     await delay();
-    const recycler = currentRecycler();
+    const recycler = currentRecycler(this);
     return [...state.transactions.values()].filter((t) => t.recyclerId === recycler.id);
   }
 
   async getMyRecyclerProfile(): Promise<Recycler> {
     await delay();
-    return currentRecycler();
+    return currentRecycler(this);
   }
 
   /* --- Shared --- */
@@ -1470,7 +1515,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async adminDashboard(): Promise<AdminDashboardView> {
     await delay();
-    currentUser();
+    currentUser(this);
     const lots = [...state.lots.values()];
     const lotsByState: Record<string, number> = {};
     for (const lot of lots) {
@@ -1498,13 +1543,13 @@ export class DemoReScrapService implements ReScrapService {
 
   async listPendingVerification(): Promise<Recycler[]> {
     await delay();
-    currentUser();
+    currentUser(this);
     return [...state.recyclers.values()].filter((r) => r.authorizationStatus === 'PENDING_REVIEW');
   }
 
   async decideVerification(recyclerId: string, decision: string, reason: string): Promise<Recycler> {
     await delay();
-    const admin = currentUser();
+    const admin = currentUser(this);
     if (admin.role !== 'ADMIN') {
       throw forbidden('verification');
     }
@@ -1550,7 +1595,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async listLotsForAdmin(): Promise<AdminLotView[]> {
     await delay();
-    currentUser();
+    currentUser(this);
     return [...state.lots.values()]
       .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
       .map(toAdminView);
@@ -1558,7 +1603,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async listAuditEvents(): Promise<AuditEvent[]> {
     await delay();
-    currentUser();
+    currentUser(this);
     return [...state.audit].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
   }
 
@@ -1570,7 +1615,7 @@ export class DemoReScrapService implements ReScrapService {
     sourceLabel: string;
   }): Promise<PriceRecord> {
     await delay();
-    const admin = currentUser();
+    const admin = currentUser(this);
     if (admin.role !== 'ADMIN') {
       throw forbidden('price management');
     }
@@ -1605,7 +1650,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async listAnomalyFlags(): Promise<Array<{ lotId: string; code: string; severity: string; message: string }>> {
     await delay();
-    currentUser();
+    currentUser(this);
     const flags: Array<{ lotId: string; code: string; severity: string; message: string }> = [];
     for (const lot of state.lots.values()) {
       const handover = lot.handoverId ? state.handovers.get(lot.handoverId) : undefined;
@@ -1623,7 +1668,7 @@ export class DemoReScrapService implements ReScrapService {
 
   async listAiPredictions(): Promise<AiPrediction[]> {
     await delay();
-    currentUser();
+    currentUser(this);
     return [...state.predictions].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   }
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ANY_AREA,
   checkOfferAgainstEstimate,
   computeFinalAmount,
   estimateValue,
@@ -14,6 +15,7 @@ import {
   MAX_SANE_WEIGHT_KG,
   isSaneWeight,
 } from '../src/domain/money.js';
+import { DemoReScrapService } from '../src/services/demo.js';
 import type { PriceRecord } from '../src/domain/types.js';
 import type { PriceRecordId, MaterialId } from '../src/domain/ids.js';
 
@@ -133,6 +135,38 @@ describe('reference price lookup', () => {
     const lookup = findReferencePrice('mat_missing' as MaterialId, area, [record()], now);
     expect(lookup.record).toBeUndefined();
     expect(lookup.ageDays).toBeNull();
+  });
+
+  it('matches any area for the "all" sentinel used by the price board', () => {
+    // The admin price board asks for every material without naming an area.
+    // Without the sentinel this returns nothing and the screen is empty.
+    const lookup = findReferencePrice(materialId, ANY_AREA, [
+      record({ area: 'Pune - Hadapsar', buyingPricePerKg: money(5000) }),
+    ], now);
+    expect(lookup.record?.buyingPricePerKg).toBe(5000);
+  });
+
+  it('still prefers a specific area over a wildcard when both are requested', () => {
+    const lookup = findReferencePrice(materialId, area, [
+      record({ id: 'wild' as PriceRecordId, area: '*', buyingPricePerKg: money(1000) }),
+      record({ id: 'exact' as PriceRecordId, area, buyingPricePerKg: money(2000) }),
+    ], now);
+    expect(lookup.record?.buyingPricePerKg).toBe(2000);
+  });
+});
+
+describe('price board over seeded data', () => {
+  it('returns one current row per material for the "all" area', async () => {
+    // Guards the admin price management screen end to end: an empty board is
+    // the failure this test was written for.
+    const board = await new DemoReScrapService().priceBoard(ANY_AREA);
+    expect(board.length).toBeGreaterThan(0);
+    expect(board.every((row) => row.demo)).toBe(true);
+    expect(new Set(board.map((row) => row.materialId)).size).toBe(board.length);
+    for (const row of board) {
+      expect(row.buyingPricePerKg).toBeGreaterThan(0);
+      expect(row.materialLabel.en.length).toBeGreaterThan(0);
+    }
   });
 });
 
