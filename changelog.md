@@ -140,6 +140,18 @@ Each entry records: Date · Change · Why · Positive impact · Potential advers
 - **Validation performed:** `pnpm run verify` passes completely across all 5 packages: `tsc --noEmit` clean, 132/132 tests passing, production bundles built in `apps/admin-web/dist` and `apps/recycler-web/dist`.
 - **Follow-up required:** Next deliverable is `apps/collector` (React Native / Expo mobile app).
 
+### Entry 012 — Collector Mobile App implemented with offline-first outbox and multilingual support
+
+- **Change:** Implemented `@rescrap/collector` mobile application covering screens A-01 through A-21:
+  - Screens: `SplashView` (A-01), `LanguageModal` (A-02: English, Hindi, Marathi instant switcher), `LoginView` (A-03: OTP auth with offline graceful degradation), `HomeView` (A-05: >=56px Add Scrap CTA, active scrap lot tracker, rates teaser, safety visual warnings), `AddScrapFlow` (A-06 to A-10: Simulated camera capture, assistive material identification, tactile weight stepper, source type, condition multiplier, and fair value review), `RecyclerMatchesView` (A-11 to A-13: Nearby recycler offers, price comparisons, offer acceptance), `HandoverView` (A-14 to A-17: Tracking timeline, scale weight verification with >10% discrepancy check, payment settlement, and digital lot passport), `MyScrapView` (A-18: local and synchronized lots), `PriceBoardView` (A-19: reference market rates per kg, category filters, quick sell action), `EarningsView` (A-20: total confirmed payouts in ₹, pending amounts, UPI destination, settlement ledger), and `ProfileView` (A-21: collector ID card, language switcher, network simulator toggle, manual sync trigger, and CPCB hazardous safety rules).
+  - Infrastructure: Local-first database (`offlineDb`) with localStorage and in-memory fallback, Outbox synchronization engine (`processOutbox`) with idempotency keys, typed Fastify client (`CollectorApiClient`), and session management (`collectorSession`).
+  - Unit tests: Added 9 unit tests in `apps/collector/tests/collector.test.ts` verifying outbox queuing, sync replay with idempotency keys, network toggling, i18n translation, and >10% discrepancy thresholds.
+- **Why:** Delivers the informal collector mobile user interface per Phase 0/1 milestone, fulfilling accessibility, low-literacy requirements, and offline-first persistence.
+- **Positive impact:** All three ReScrap applications (Admin Console, Recycler Portal, and Collector Mobile) are now fully implemented and integrated across the monorepo. Total passing tests: 141 across 11 test suites.
+- **Potential adverse impact:** None.
+- **Affected components:** `apps/collector/**`, `changelog.md`, `project-summary.md`.
+- **Validation performed:** `pnpm run verify` passed cleanly: `tsc --noEmit` clean across all 6 packages, 141/141 tests passing, production bundles generated for all three frontends.
+
 ---
 
 ## Open follow-up items

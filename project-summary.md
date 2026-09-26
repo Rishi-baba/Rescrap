@@ -65,21 +65,19 @@ INFORMAL COLLECTION → DIGITAL LOT → MATERIAL INTELLIGENCE
 - `apps/admin-web`: Vite + React + Tailwind CSS Admin Console covering Dashboard, Verification Queue, Lot Monitoring, Audit Trail, Price Governance, and Exceptions
 - `packages/design-system`: Deep Forest + Impact Green token system, Inter typography, accessible UI components (`Button`, `Badge`, `StatusPill`, `Input`, `Select`, `Card`, `Modal`, `PriceDisplay`, `EmptyState`, `LoadingState`, `ErrorState`, `FilterChip`, `DemoBanner`, `DataTable`)
 - `apps/recycler-web`: Vite + React + Tailwind CSS Recycler Portal covering screens B-01 through B-10 (Login, Dashboard with 6 metrics, Available Lots with faceted filtering, Offers, Lot Detail & Make Offer modal, Active Deals, Pickup Scheduling, Handover Execution with discrepancy check, Transactions ledger, and Profile)
-- 132 passing tests across all workspace packages; production builds succeed cleanly
-- `pnpm run verify` (typecheck → test → build) passes for all packages
+- `apps/collector`: Vite + React + Tailwind CSS Collector Mobile App covering screens A-01 through A-21 (Splash, Language Switcher, OTP Login with offline fallback, Home with >=56px CTA, Add Scrap Flow with photo capture, assistive material ID, tactile weight stepper, and value review, Recycler Matches, Handover with scale verification and Lot Passport, My Scrap, Reference Price Board, Confirmed Earnings Ledger, and Profile with CPCB safety rules)
+- Outbox sync engine with idempotency keys, offline database store, and network simulation toggle
+- 141 passing tests across all 11 workspace test suites; production bundles build cleanly across all packages
+- `pnpm run verify` (typecheck → test → build) passes 100% cleanly for all 6 workspace packages
 
 ### In progress
 
-- Phase 0 completion: `apps/collector`
+- Phase 4: Production model integration & continuous field testing preparation
 
-### Not started
+### Next Milestones
 
-- `apps/collector` — React Native + Expo shell and the screen sequence 01–21
-- Phase 1 (Collector MVP): photo capture, material identification, weight, estimate, offline database, outbox sync
-- Phase 3 (Shared transaction UI): acceptance, handover, payment, Lot Passport, traceability surfaces
-- Phase 4 (AI/ML) — blocked on accumulated transaction data
-- Phase 5 (Field validation) — blocked on real recycler participation
-- Phase 6 (Scale) — deployment topology undecided
+- Phase 5 (Field validation) — onboarding real recyclers and formal collectors in Hadapsar, Pune
+- Phase 6 (Scale & Deployment) — PostgreSQL database migrations, real SMS gateway, cloud object storage, and production hosting topology
 
 ### Mocked / simulated — all of it
 
