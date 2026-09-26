@@ -28,7 +28,28 @@ export async function recyclerRoutes(
   const listLimit = rateLimit(limiter, { max: 120, windowMs: 60_000, bucket: 'list' });
 
   app.get('/recycler/dashboard', { preHandler: recyclerOnly }, async (request) => {
-    return envelope(await serviceOf(request).recyclerDashboard());
+    const svc = serviceOf(request);
+    const dashboard = await svc.recyclerDashboard();
+    const lots = await svc.listAvailableLots({});
+    const recentMatchingLots = lots.map((l) => ({
+      id: l.id,
+      materialName: l.items[0]?.materialLabel.en ?? 'E-Waste Material',
+      categoryName: 'Electronics',
+      declaredWeightKg: l.totalWeightKg,
+      condition: l.items[0]?.condition ?? 'GOOD',
+      collectionArea: l.collectionArea,
+      estimatedValuePaise: l.estimatedValue as unknown as number,
+      photoKeys: l.items[0]?.photoKeys ?? [],
+      createdAt: l.createdAt,
+      status: l.state,
+    }));
+
+    return envelope({
+      ...dashboard,
+      completedThisMonthCount: dashboard.completedCount,
+      acceptanceRatePercent: dashboard.acceptanceRate,
+      recentMatchingLots,
+    });
   });
 
   app.get('/recycler/lots', { preHandler: [...recyclerOnly, listLimit] }, async (request) => {

@@ -60,9 +60,12 @@ export function toHttpError(err: unknown): { status: number; shape: ApiErrorShap
   }
   if (err && typeof err === 'object' && 'statusCode' in err && typeof (err as { statusCode: unknown }).statusCode === 'number') {
     const status = (err as { statusCode: number }).statusCode;
+    const msg = 'message' in err && typeof (err as { message: unknown }).message === 'string'
+      ? (err as { message: string }).message
+      : 'Invalid request';
     return {
       status,
-      shape: { code: status === 400 ? 'INVALID_INPUT' : 'INTERNAL', message: (err as Error).message || 'Invalid request' },
+      shape: { code: status === 400 ? 'INVALID_INPUT' : 'INTERNAL', message: msg },
     };
   }
   return {

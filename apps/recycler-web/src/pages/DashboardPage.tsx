@@ -33,45 +33,50 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   if (error) return <ErrorState message={error} onRetry={loadDashboard} />;
   if (!data) return null;
 
+  const completedCount = data.completedThisMonthCount ?? (data as any).completedCount ?? 0;
+  const acceptancePercent = data.acceptanceRatePercent ?? (data as any).acceptanceRate ?? 0;
+  const recentMatchingLots = data.recentMatchingLots ?? [];
+  const pendingActions = data.pendingActions ?? [];
+
   const metrics = [
     {
       title: 'New Matching Lots',
-      value: data.newLotsCount,
+      value: data.newLotsCount ?? 0,
       rationale: 'Should I bid now?',
       onClick: () => onNavigate('available-lots'),
       color: 'border-l-4 border-l-emerald-500',
     },
     {
       title: 'Pending Offers',
-      value: data.pendingOffersCount,
+      value: data.pendingOffersCount ?? 0,
       rationale: 'What needs my action?',
       onClick: () => onNavigate('offers'),
       color: 'border-l-4 border-l-blue-500',
     },
     {
       title: 'Active Deals',
-      value: data.activeDealsCount,
+      value: data.activeDealsCount ?? 0,
       rationale: 'What needs scheduling?',
       onClick: () => onNavigate('deals'),
       color: 'border-l-4 border-l-amber-500',
     },
     {
       title: 'Upcoming Pickups',
-      value: data.upcomingPickupsCount,
+      value: data.upcomingPickupsCount ?? 0,
       rationale: 'What needs logistics?',
       onClick: () => onNavigate('deals'),
       color: 'border-l-4 border-l-purple-500',
     },
     {
       title: 'Completed (Month)',
-      value: data.completedThisMonthCount,
+      value: completedCount,
       rationale: 'Is this channel working?',
       onClick: () => onNavigate('deals'),
       color: 'border-l-4 border-l-stone-500',
     },
     {
       title: 'Acceptance Rate',
-      value: `${data.acceptanceRatePercent}%`,
+      value: `${acceptancePercent}%`,
       rationale: 'Should I adjust pricing?',
       onClick: () => onNavigate('offers'),
       color: 'border-l-4 border-l-teal-500',
@@ -126,13 +131,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </Button>
             </CardHeader>
             <CardBody className="p-0">
-              {data.recentMatchingLots.length === 0 ? (
+              {recentMatchingLots.length === 0 ? (
                 <div className="p-6 text-center text-xs text-stone-500">
                   No new scrap lots currently open.
                 </div>
               ) : (
                 <div className="divide-y divide-stone-100">
-                  {data.recentMatchingLots.slice(0, 5).map((lot) => (
+                  {recentMatchingLots.slice(0, 5).map((lot) => (
                     <div
                       key={lot.id}
                       onClick={() => onNavigate('available-lots')}
@@ -169,18 +174,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <Card>
             <CardHeader>
               <h3 className="text-sm font-bold text-stone-900">Pending Actions</h3>
-              <Badge tone={data.pendingActions.length > 0 ? 'warning' : 'neutral'}>
-                {data.pendingActions.length} Actions
+              <Badge tone={pendingActions.length > 0 ? 'warning' : 'neutral'}>
+                {pendingActions.length} Actions
               </Badge>
             </CardHeader>
             <CardBody className="p-0">
-              {data.pendingActions.length === 0 ? (
+              {pendingActions.length === 0 ? (
                 <div className="p-6 text-center text-xs text-stone-500">
                   All active deals are up to date!
                 </div>
               ) : (
                 <div className="divide-y divide-stone-100">
-                  {data.pendingActions.map((action) => (
+                  {pendingActions.map((action) => (
                     <div key={action.id} className="p-3.5 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-stone-800">
