@@ -14,11 +14,18 @@ export function formatPaiseToInr(paise: number): string {
   return `${paise < 0 ? '-' : ''}INR ${formatted}`;
 }
 
+export function formatApproximatePaise(paise: number): string {
+  const rupees = Math.round(Math.abs(paise) / 100);
+  const formatted = rupees.toLocaleString('en-IN');
+  return `${paise < 0 ? '-' : ''}Around ₹${formatted}`;
+}
+
 export interface PriceDisplayProps {
   paise: number;
   label?: string;
   size?: 'sm' | 'md' | 'lg' | 'display';
   isEstimate?: boolean;
+  approximate?: boolean;
   className?: string;
 }
 
@@ -34,14 +41,16 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   label,
   size = 'md',
   isEstimate = false,
+  approximate = false,
   className = '',
 }) => {
+  const shouldApproximate = approximate || isEstimate;
   return (
     <div className={`inline-flex flex-col ${className}`}>
       {label ? <span className="text-xs text-stone-500 font-medium mb-0.5">{label}</span> : null}
       <div className="flex items-baseline gap-1.5">
         <span className={`font-mono tracking-tight text-stone-900 ${sizeStyles[size]}`}>
-          {formatPaiseToInr(paise)}
+          {shouldApproximate ? formatApproximatePaise(paise) : formatPaiseToInr(paise)}
         </span>
         {isEstimate ? (
           <span className="text-xs uppercase font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">

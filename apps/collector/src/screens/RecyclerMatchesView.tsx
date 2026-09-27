@@ -131,7 +131,7 @@ export const RecyclerMatchesView: React.FC<RecyclerMatchesViewProps> = ({
                   </div>
                   <p className="text-xs text-stone-500 mt-0.5">{offer.area}</p>
                 </div>
-                <PriceDisplay paise={offer.amountPaise} size="md" />
+                <PriceDisplay paise={offer.amountPaise} approximate size="md" />
               </div>
 
               <div className="p-2.5 rounded-lg bg-stone-50 text-[11px] text-stone-600">

@@ -29,10 +29,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, []);
 
   const priceTeasers = [
-    { name: 'Laptop / Computer', rate: '₹140/kg', icon: '💻' },
-    { name: 'Mobile / Smartphone', rate: '₹350/kg', icon: '📱' },
-    { name: 'Copper Wires', rate: '₹620/kg', icon: '⚡' },
-    { name: 'Printed Circuit Boards', rate: '₹220/kg', icon: '🔌' },
+    { name: 'Laptop / Computer', rate: 'Around ₹140/kg', icon: '💻' },
+    { name: 'Mobile / Smartphone', rate: 'Around ₹350/kg', icon: '📱' },
+    { name: 'Copper Wires', rate: 'Around ₹620/kg', icon: '⚡' },
+    { name: 'Printed Circuit Boards', rate: 'Around ₹220/kg', icon: '🔌' },
   ];
 
   return (

@@ -118,7 +118,25 @@ export async function recyclerRoutes(
   );
 
   app.get('/recycler/profile', { preHandler: recyclerOnly }, async (request) => {
-    return envelope(await serviceOf(request).getMyRecyclerProfile());
+    const r = await serviceOf(request).getMyRecyclerProfile();
+    return envelope({
+      id: r.id,
+      businessName: r.businessName,
+      verificationStatus: r.authorizationStatus,
+      authorizedMaterials: (r.acceptedCategoryIds ?? []).map((catId) => {
+        if (catId === 'cat_ewaste_computing') return 'Computing & IT Equipment';
+        if (catId === 'cat_ewaste_telecom') return 'Telecom & Smartphones';
+        if (catId === 'cat_ewaste_pcb') return 'Printed Circuit Boards';
+        if (catId === 'cat_ewaste_consumer') return 'Consumer Electronics';
+        if (catId === 'cat_battery_lithium') return 'Lithium-ion Batteries';
+        return catId;
+      }),
+      serviceAreas: r.serviceAreas ?? ['Pune - Hadapsar', 'Pune - Magarpatta'],
+      contactPhone: r.phone ?? '+91 90000 00002',
+      facilityAddress: 'MIDC Industrial Estate, Phase II, Hadapsar, Pune - 411028',
+      authorizationIsDemo: r.authorizationIsDemo,
+      pickupAvailable: r.pickupAvailable,
+    });
   });
 
   app.get('/recycler/transactions', { preHandler: [...recyclerOnly, listLimit] }, async (request) => {

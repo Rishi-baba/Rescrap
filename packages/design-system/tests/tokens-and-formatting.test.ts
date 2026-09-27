@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { colors, semanticStatusStyles, formatPaiseToInr, typography, radii, touchTargets } from '../src/index.js';
+import { colors, semanticStatusStyles, formatPaiseToInr, formatApproximatePaise, typography, radii, touchTargets } from '../src/index.js';
 
 describe('Design Tokens', () => {
   it('defines the core Deep Forest and Impact Green color palette', () => {
@@ -55,5 +55,17 @@ describe('formatPaiseToInr', () => {
 
   it('handles negative balances cleanly', () => {
     expect(formatPaiseToInr(-2500)).toBe('-INR 25.00');
+  });
+});
+
+describe('formatApproximatePaise', () => {
+  it('formats whole rupees prefixed with Around ₹', () => {
+    expect(formatApproximatePaise(210_000)).toBe('Around ₹2,100');
+    expect(formatApproximatePaise(14_000)).toBe('Around ₹140');
+    expect(formatApproximatePaise(0)).toBe('Around ₹0');
+  });
+
+  it('formats large approximate values with Indian grouping', () => {
+    expect(formatApproximatePaise(100_000_00)).toBe('Around ₹1,00,000');
   });
 });

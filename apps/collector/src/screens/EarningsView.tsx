@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { formatMoney, money } from '@rescrap/shared';
 import { DemoBanner, StatusPill } from '@rescrap/design-system';
 import { useI18n } from '../lib/i18n.js';
 import { offlineDb, type LocalScrapLot } from '../lib/offline-db.js';
@@ -101,7 +100,7 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
               {locale === 'hi' ? 'कुल प्राप्त राशि' : 'Total Confirmed Payouts'}
             </span>
             <div className="text-3xl font-extrabold font-mono mt-1 tracking-tight">
-              {formatMoney(money(totalConfirmedPaise))}
+              Around ₹{Math.round(totalConfirmedPaise / 100).toLocaleString('en-IN')}
             </div>
           </div>
           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
@@ -116,7 +115,7 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
               {locale === 'hi' ? 'प्रक्रिया में (लंबित)' : 'Pending Verification'}
             </span>
             <div className="text-base font-bold font-mono text-emerald-100">
-              {formatMoney(money(pendingPaise))}
+              Around ₹{Math.round(pendingPaise / 100).toLocaleString('en-IN')}
             </div>
           </div>
           <div>
@@ -200,7 +199,7 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
                   </div>
                   <div className="text-right">
                     <div className="text-base font-extrabold text-emerald-800 font-mono">
-                      +{formatMoney(money(lot.estimatedValuePaise))}
+                      Around ₹{Math.round(lot.estimatedValuePaise / 100).toLocaleString('en-IN')}
                     </div>
                     <span className="text-[11px] text-stone-500 font-medium">
                       {lot.declaredWeightKg} kg

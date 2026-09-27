@@ -195,7 +195,7 @@ export const AddScrapFlow: React.FC<AddScrapFlowProps> = ({ onCancel, onComplete
                     <div className="flex items-center justify-between">
                       <span className="text-2xl">{mat.icon}</span>
                       <span className="text-[11px] font-bold text-emerald-800 font-mono">
-                        ₹{mat.ratePaise / 100}/kg
+                        Around ₹{Math.round(mat.ratePaise / 100).toLocaleString('en-IN')}/kg
                       </span>
                     </div>
                     <span className="text-xs font-bold leading-tight mt-1">{mat.name}</span>
@@ -341,7 +341,7 @@ export const AddScrapFlow: React.FC<AddScrapFlowProps> = ({ onCancel, onComplete
                 </div>
                 <div className="flex justify-between">
                   <span className="text-stone-500">Reference Rate:</span>
-                  <span className="font-mono font-bold">₹{selectedMaterial.ratePaise / 100}/kg</span>
+                  <span className="font-mono font-bold">Around ₹{Math.round(selectedMaterial.ratePaise / 100).toLocaleString('en-IN')}/kg</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-stone-500">Condition Factor:</span>

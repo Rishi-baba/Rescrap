@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { demoSeed, formatMoney, money } from '@rescrap/shared';
+import { demoSeed } from '@rescrap/shared';
 import { DemoBanner } from '@rescrap/design-system';
 import { useI18n } from '../lib/i18n.js';
 
@@ -149,7 +149,7 @@ export const PriceBoardView: React.FC<PriceBoardViewProps> = ({ onStartSell }) =
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <div className="text-right">
                   <span className="text-base font-extrabold text-emerald-800 font-mono">
-                    {formatMoney(money(ratePaise))}
+                    Around ₹{Math.round(ratePaise / 100).toLocaleString('en-IN')}
                   </span>
                   <span className="text-[11px] text-stone-500 font-medium"> /kg</span>
                 </div>

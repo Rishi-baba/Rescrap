@@ -139,7 +139,7 @@ export const HandoverView: React.FC<HandoverViewProps> = ({ lotId, onBack, onDon
 
           <div className="p-3.5 rounded-xl border border-stone-200 bg-stone-50 text-xs flex justify-between items-center">
             <span className="text-stone-600 font-medium">Agreed Final Payment:</span>
-            <PriceDisplay paise={finalAmountPaise} size="md" />
+            <PriceDisplay paise={finalAmountPaise} approximate size="md" />
           </div>
 
           <label className="flex items-start gap-2.5 p-3 rounded-xl border border-stone-200 bg-white text-xs text-stone-700 cursor-pointer">
@@ -177,8 +177,8 @@ export const HandoverView: React.FC<HandoverViewProps> = ({ lotId, onBack, onDon
               Payment Successful / भुगतान सफल
             </span>
 
-            <div className="text-4xl font-black text-stone-900 font-mono">
-              ₹{(finalAmountPaise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            <div className="text-3xl font-black text-stone-900 font-mono">
+              Around ₹{Math.round(finalAmountPaise / 100).toLocaleString('en-IN')}
             </div>
 
             <div className="p-2 rounded bg-amber-50 border border-amber-200 text-[11px] text-amber-800 font-semibold inline-block">
@@ -241,7 +241,7 @@ export const HandoverView: React.FC<HandoverViewProps> = ({ lotId, onBack, onDon
               </div>
               <div className="flex justify-between">
                 <span className="text-stone-400">Settled Value:</span>
-                <PriceDisplay paise={finalAmountPaise} size="sm" />
+                <PriceDisplay paise={finalAmountPaise} approximate size="sm" />
               </div>
               <div className="flex flex-col gap-0.5 border-t border-stone-100 pt-2">
                 <span className="text-stone-400 text-[10px]">Traceability Hash:</span>

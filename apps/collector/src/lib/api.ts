@@ -35,9 +35,12 @@ export interface CollectorUser {
   name: string;
 }
 
-export interface CollectorSessionData {
+export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+}
+
+export interface CollectorSessionData extends AuthTokens {
   user: CollectorUser;
 }
 
@@ -120,13 +123,45 @@ export class CollectorApiClient {
     }
 
     try {
-      const res = await this.fetchImpl(`${this.baseUrl}${path}`, {
+      let res = await this.fetchImpl(`${this.baseUrl}${path}`, {
         ...init,
         headers,
       });
 
+      // If token expired (401), attempt rotating refresh and retry once
+      if (res.status === 401 && this.tokens?.refreshToken && !path.startsWith('/auth/')) {
+        try {
+          const refreshRes = await this.fetchImpl(`${this.baseUrl}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ refreshToken: this.tokens.refreshToken }),
+          });
+          if (refreshRes.ok) {
+            const refreshBody = (await refreshRes.json()) as Envelope<AuthTokens>;
+            if (refreshBody.data?.accessToken) {
+              this.setTokens({
+                accessToken: refreshBody.data.accessToken,
+                refreshToken: refreshBody.data.refreshToken,
+              });
+              headers.set('authorization', `Bearer ${refreshBody.data.accessToken}`);
+              res = await this.fetchImpl(`${this.baseUrl}${path}`, {
+                ...init,
+                headers,
+              });
+            }
+          } else {
+            this.setTokens(null);
+          }
+        } catch {
+          this.setTokens(null);
+        }
+      }
+
       const body = (await res.json()) as Envelope<T>;
       if (!res.ok || body.error) {
+        if (res.status === 401) {
+          this.setTokens(null);
+        }
         const err = body.error ?? { code: 'UNKNOWN_ERROR', message: `Server error ${res.status}` };
         throw new ApiError(err.code, err.message, res.status);
       }
@@ -134,6 +169,27 @@ export class CollectorApiClient {
     } catch (err) {
       if (err instanceof ApiError) throw err;
       throw new ApiError('NETWORK_ERROR', 'Network connection unavailable', 0);
+    }
+  }
+
+  async refresh(): Promise<AuthTokens | null> {
+    if (!this.tokens?.refreshToken) return null;
+    try {
+      const refreshRes = await this.fetchImpl(`${this.baseUrl}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ refreshToken: this.tokens.refreshToken }),
+      });
+      if (!refreshRes.ok) {
+        this.setTokens(null);
+        return null;
+      }
+      const body = (await refreshRes.json()) as Envelope<AuthTokens>;
+      this.setTokens(body.data);
+      return body.data;
+    } catch {
+      this.setTokens(null);
+      return null;
     }
   }
 

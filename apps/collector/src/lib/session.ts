@@ -4,7 +4,7 @@
  * Persists session tokens in localStorage (or sessionStorage) for quick resume.
  */
 import { useSyncExternalStore } from 'react';
-import { CollectorApiClient } from './api.js';
+import { CollectorApiClient, ApiError } from './api.js';
 import { processOutbox } from './sync.js';
 
 const STORAGE_KEY = 'rescrap.collector.session';
@@ -29,7 +29,12 @@ class CollectorSessionStore {
     this.client = new CollectorApiClient({
       baseUrl: import.meta.env['VITE_API_BASE_URL'] as string | undefined,
       tokens: this.read(),
-      onTokens: (tokens) => this.write(tokens),
+      onTokens: (tokens) => {
+        this.write(tokens);
+        if (!tokens && this.state.phase === 'signed-in') {
+          this.emit({ phase: 'signed-out', reality: this.state.reality });
+        }
+      },
     });
   }
 
@@ -50,7 +55,8 @@ class CollectorSessionStore {
 
   clear(): void {
     this.write(null);
-    this.emit({ phase: 'signed-out' });
+    this.client.setTokens(null);
+    this.emit({ phase: 'signed-out', reality: this.state.reality });
   }
 
   private emit(next: CollectorSessionState): void {
@@ -95,7 +101,14 @@ class CollectorSessionStore {
         reality,
       });
       void processOutbox(this.client);
-    } catch {
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        // Token rejected by server - clear and sign out cleanly
+        this.write(null);
+        this.client.setTokens(null);
+        this.emit({ phase: 'signed-out', reality });
+        return;
+      }
       // In offline mode, if tokens exist locally, keep collector signed in locally!
       this.emit({
         phase: 'signed-in',
