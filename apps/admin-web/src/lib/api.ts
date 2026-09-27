@@ -22,7 +22,7 @@ import type {
   Role,
 } from '@rescrap/shared';
 
-export const DEFAULT_BASE_URL = 'http://localhost:4000';
+export const DEFAULT_BASE_URL = 'http://127.0.0.1:3000';
 
 export interface OtpRequestResult {
   sent: boolean;
