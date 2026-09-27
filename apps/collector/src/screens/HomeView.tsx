@@ -47,7 +47,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-800 to-emerald-600 p-5 text-white shadow-md">
         <div className="relative z-10 flex flex-col gap-3">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-200">
-            {t('collector', 'home') || 'Namaste, Ramesh'}
+            {t('collector', 'home') || 'Namaste, Sunita'}
           </span>
           <h2 className="text-xl font-extrabold leading-tight">
             Have e-waste or scrap to sell today?

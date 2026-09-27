@@ -90,7 +90,7 @@ class CollectorSessionStore {
       await this.client.getHome();
       this.emit({
         phase: 'signed-in',
-        name: 'Ramesh Kabadiwala',
+        name: 'Sunita Devi',
         userId: 'u_collector_1',
         reality,
       });
@@ -99,7 +99,7 @@ class CollectorSessionStore {
       // In offline mode, if tokens exist locally, keep collector signed in locally!
       this.emit({
         phase: 'signed-in',
-        name: 'Ramesh (Offline)',
+        name: 'Sunita (Offline)',
         userId: 'u_collector_1',
         reality,
       });

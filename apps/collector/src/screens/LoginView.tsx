@@ -88,7 +88,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onSuccess }) => {
                 required
               />
               <span className="text-[11px] text-stone-400 mt-1 block">
-                Demo Account: +919000000001 (Ramesh Kabadiwala)
+                Demo Account: +919000000001 (Sunita Devi)
               </span>
             </div>
 

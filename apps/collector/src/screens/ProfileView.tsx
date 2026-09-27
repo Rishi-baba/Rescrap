@@ -67,16 +67,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onOpenLanguage, onLogo
       <div className="p-4 rounded-2xl border border-stone-200 bg-white shadow-xs flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-emerald-800 text-white flex items-center justify-center text-xl font-extrabold shadow-sm shrink-0">
-            RS
+            SD
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-extrabold text-stone-900 text-base truncate">Ramesh Shinde</h3>
+              <h3 className="font-extrabold text-stone-900 text-base truncate">Sunita Devi</h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                 VERIFIED
               </span>
             </div>
-            <p className="text-xs text-stone-600 font-mono">+91 98765 43210</p>
+            <p className="text-xs text-stone-600 font-mono">+91 90000 00001</p>
             <p className="text-[11px] text-stone-500">Service Area: Hadapsar &amp; Magarpatta, Pune</p>
           </div>
         </div>
