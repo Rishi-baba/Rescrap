@@ -12,11 +12,12 @@
     "test": "pnpm -r --no-bail run test",
     "build": "pnpm -r --no-bail run build",
     "lint": "pnpm -r --no-bail run lint",
-    "dev": "pnpm --parallel --filter @rescrap/api --filter @rescrap/admin-web run dev",
+    "dev": "pnpm --parallel --filter @rescrap/api --filter @rescrap/collector --filter @rescrap/recycler-web --filter @rescrap/admin-web run dev",
+    "dev:all": "pnpm --parallel --filter @rescrap/api --filter @rescrap/collector --filter @rescrap/recycler-web --filter @rescrap/admin-web run dev",
     "dev:api": "pnpm --filter @rescrap/api dev",
+    "dev:collector": "pnpm --filter @rescrap/collector dev",
     "dev:recycler": "pnpm --filter @rescrap/recycler-web dev",
     "dev:admin": "pnpm --filter @rescrap/admin-web dev",
-    "dev:collector": "pnpm --filter @rescrap/collector start",
     "verify": "pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
