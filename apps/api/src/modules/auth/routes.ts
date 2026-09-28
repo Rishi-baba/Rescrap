@@ -137,7 +137,11 @@ export async function authRoutes(app: FastifyInstance, options: AuthRoutesOption
     { preHandler: app.requireAuth },
     async (request) => {
       const input = parse(completeProfileSchema, request.body);
-      const session = await serviceOf(request).completeProfile(input);
+      const session = await serviceOf(request).completeProfile({
+        displayName: input.displayName ?? 'User',
+        locale: input.locale ?? 'en',
+        ...(input.baseArea ? { baseArea: input.baseArea } : {}),
+      });
       return envelope({ user: session.user, demo: true });
     },
   );
