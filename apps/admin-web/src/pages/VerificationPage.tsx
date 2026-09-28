@@ -11,7 +11,6 @@ import type { Recycler } from '@rescrap/shared';
 import { session } from '../lib/session';
 import { formatDate } from '../lib/format';
 import {
-  Badge,
   Card,
   DemoBoundary,
   DemoTag,
@@ -73,15 +72,14 @@ export function VerificationPage() {
 
   return (
     <DemoBoundary isDemo>
-      <div className="flex flex-col gap-3">
-        <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950">
-          <strong>No recycler authorization is real.</strong> These partners are seeded demo records
-          used to exercise the review workflow. Approving one does not grant any legal permission to
-          handle e-waste.
+      <div className="flex flex-col gap-4 text-[#F5EFE6]">
+        <div className="rounded-2xl border border-amber-600/40 bg-amber-950/40 p-4 text-xs text-amber-300">
+          <strong className="text-amber-200">Regulatory Disclaimer:</strong> No recycler authorization here is real.
+          These partners are seeded demo records used to exercise the review workflow. Approving one does not grant any legal permission to handle e-waste.
         </div>
 
         {notice ? (
-          <p role="status" className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          <p role="status" className="rounded-xl border border-[#2FBF71]/40 bg-[#163324] px-4 py-2.5 text-xs text-[#4FD68C] font-medium">
             {notice}
           </p>
         ) : null}
@@ -97,46 +95,47 @@ export function VerificationPage() {
           ) : (
             <div className="flex flex-col gap-4">
               {queue.map((recycler) => (
-                <article key={recycler.id} className="rounded-md border border-stone-200 p-3">
+                <article key={recycler.id} className="rounded-2xl border border-[#1E3A2B] bg-[#0C1A14] p-4 shadow-sm">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <h3 className="text-sm font-semibold text-stone-900">{recycler.businessName}</h3>
-                      <p className="mt-0.5 text-xs text-stone-500">
-                        <span className="font-mono">{recycler.id}</span> &middot; applied{' '}
-                        {formatDate(recycler.createdAt)}
+                      <h3 className="text-sm font-bold text-white">{recycler.businessName}</h3>
+                      <p className="mt-0.5 text-xs text-stone-400 font-mono">
+                        <span>{recycler.id}</span> &middot; applied {formatDate(recycler.createdAt)}
                       </p>
                     </div>
-                    <div className="flex gap-1">
-                      <Badge tone="bg-amber-100 text-amber-900">{recycler.authorizationStatus}</Badge>
+                    <div className="flex gap-1.5 items-center">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-950/50 text-amber-300 border border-amber-600/40">
+                        {recycler.authorizationStatus}
+                      </span>
                       {recycler.authorizationIsDemo ? <DemoTag /> : null}
                     </div>
                   </div>
 
-                  <dl className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 text-xs text-stone-600 sm:grid-cols-2">
-                    <div className="flex gap-1">
-                      <dt className="font-medium">Service areas:</dt>
-                      <dd>{recycler.serviceAreas.join(', ') || 'Not stated'}</dd>
+                  <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 text-xs text-stone-300 sm:grid-cols-2 bg-[#12231B] p-3 rounded-xl border border-[#1E3A2B]">
+                    <div className="flex gap-1.5">
+                      <dt className="text-stone-400 font-mono text-[11px]">Service areas:</dt>
+                      <dd className="font-semibold text-white">{recycler.serviceAreas.join(', ') || 'Not stated'}</dd>
                     </div>
-                    <div className="flex gap-1">
-                      <dt className="font-medium">Pickup available:</dt>
-                      <dd>{recycler.pickupAvailable ? 'Yes' : 'No'}</dd>
+                    <div className="flex gap-1.5">
+                      <dt className="text-stone-400 font-mono text-[11px]">Pickup available:</dt>
+                      <dd className="font-semibold text-white">{recycler.pickupAvailable ? 'Yes' : 'No'}</dd>
                     </div>
-                    <div className="flex gap-1">
-                      <dt className="font-medium">Accepts categories:</dt>
-                      <dd>{recycler.acceptedCategoryIds.length}</dd>
+                    <div className="flex gap-1.5">
+                      <dt className="text-stone-400 font-mono text-[11px]">Accepts categories:</dt>
+                      <dd className="font-semibold text-white">{recycler.acceptedCategoryIds.length}</dd>
                     </div>
-                    <div className="flex gap-1">
-                      <dt className="font-medium">Note on file:</dt>
-                      <dd>{recycler.verificationNote ?? 'None'}</dd>
+                    <div className="flex gap-1.5">
+                      <dt className="text-stone-400 font-mono text-[11px]">Note on file:</dt>
+                      <dd className="text-stone-300">{recycler.verificationNote ?? 'None'}</dd>
                     </div>
                   </dl>
 
-                  <div className="mt-3 border-t border-stone-100 pt-3">
+                  <div className="mt-3 border-t border-[#1E3A2B] pt-3">
                     <label
-                      className="block text-xs font-medium text-stone-700"
+                      className="block text-xs font-mono uppercase tracking-wider text-stone-300 mb-1"
                       htmlFor={`reason-${recycler.id}`}
                     >
-                      Decision reason (required, recorded in the audit log)
+                      Decision Reason (Required, recorded in append-only audit log)
                     </label>
                     <textarea
                       id={`reason-${recycler.id}`}
@@ -146,24 +145,24 @@ export function VerificationPage() {
                       }
                       rows={2}
                       placeholder="e.g. Reviewed seeded demo documents; operating area matches the service pin."
-                      className="mt-1 w-full rounded-md border border-stone-300 px-2 py-1.5 text-sm focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+                      className="w-full rounded-xl border border-[#1E3A2B] bg-[#12231B] p-3 text-xs text-white placeholder-stone-500 focus:border-[#2FBF71] focus:ring-1 focus:ring-[#2FBF71] focus:outline-none"
                     />
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-3 flex gap-2">
                       <button
                         type="button"
                         disabled={busyId === recycler.id}
                         onClick={() => void decide(recycler, 'APPROVE')}
-                        className="rounded-md bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-60"
+                        className="rounded-xl bg-[#1E8E53] hover:bg-[#2FBF71] active:brightness-95 px-4 py-2 text-xs font-extrabold text-[#07130D] transition-colors disabled:opacity-50"
                       >
-                        Approve
+                        Approve Facility
                       </button>
                       <button
                         type="button"
                         disabled={busyId === recycler.id}
                         onClick={() => void decide(recycler, 'REJECT')}
-                        className="rounded-md border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-800 hover:bg-rose-50 disabled:opacity-60"
+                        className="rounded-xl border border-rose-800/60 bg-rose-950/40 hover:bg-rose-900/60 px-4 py-2 text-xs font-bold text-rose-300 transition-colors disabled:opacity-50"
                       >
-                        Reject
+                        Reject Application
                       </button>
                     </div>
                   </div>

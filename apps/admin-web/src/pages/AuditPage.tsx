@@ -10,7 +10,6 @@ import type { AuditEvent } from '@rescrap/shared';
 import { session } from '../lib/session';
 import { formatDateTime } from '../lib/format';
 import {
-  Badge,
   Card,
   DemoBoundary,
   DemoTag,
@@ -24,13 +23,13 @@ import {
 function roleTone(role: string): string {
   switch (role) {
     case 'ADMIN':
-      return 'bg-violet-100 text-violet-900';
+      return 'bg-[#163324] text-[#4FD68C] border-[#2FBF71]/30';
     case 'RECYCLER':
-      return 'bg-amber-100 text-amber-900';
+      return 'bg-amber-950/40 text-amber-300 border-amber-600/40';
     case 'COLLECTOR':
-      return 'bg-sky-100 text-sky-900';
+      return 'bg-sky-950/40 text-sky-300 border-sky-600/40';
     default:
-      return 'bg-stone-100 text-stone-700';
+      return 'bg-[#0C1A14] text-stone-300 border-[#1E3A2B]';
   }
 }
 
@@ -70,7 +69,7 @@ export function AuditPage() {
 
   return (
     <DemoBoundary isDemo={events.every((event) => event.demo)}>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4 text-[#F5EFE6]">
         {error ? <ErrorNotice error={error} /> : null}
 
         <Card
@@ -78,16 +77,16 @@ export function AuditPage() {
           subtitle="Append-only. Entries cannot be edited or removed, by this console or any API caller."
           action={<DemoTag label="READ ONLY" />}
         >
-          <div className="mb-3 flex flex-wrap gap-1">
+          <div className="mb-4 flex flex-wrap gap-1.5">
             {['all', 'ADMIN', 'RECYCLER', 'COLLECTOR', 'SYSTEM'].map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setActorFilter(option)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all border ${
                   actorFilter === option
-                    ? 'bg-stone-900 text-white'
-                    : 'border border-stone-300 bg-white text-stone-700 hover:bg-stone-50'
+                    ? 'bg-[#1E8E53] text-[#07130D] border-[#2FBF71] font-bold shadow-md'
+                    : 'border-[#1E3A2B] bg-[#0C1A14] text-stone-400 hover:text-white hover:bg-[#163324]'
                 }`}
               >
                 {option === 'all' ? 'All actors' : option}
@@ -100,29 +99,31 @@ export function AuditPage() {
           ) : (
             <Table head={['When', 'Actor', 'Action', 'Target', 'Reason', '']}>
               {visible.map((event) => (
-                <tr key={event.id} className="hover:bg-stone-50">
-                  <Td className="text-xs whitespace-nowrap text-stone-600">
+                <tr key={event.id} className="hover:bg-[#163324]/40 transition-colors">
+                  <Td className="text-xs whitespace-nowrap text-stone-400 font-mono">
                     {formatDateTime(event.at)}
                   </Td>
                   <Td>
-                    <Badge tone={roleTone(event.actorRole)}>{event.actorRole}</Badge>
-                    <p className="mt-0.5 font-mono text-[11px] text-stone-500">{event.actorUserId}</p>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${roleTone(event.actorRole)}`}>
+                      {event.actorRole}
+                    </span>
+                    <p className="mt-0.5 font-mono text-[10px] text-stone-500">{event.actorUserId}</p>
                   </Td>
-                  <Td className="font-mono text-xs text-stone-800">{event.action}</Td>
-                  <Td className="text-xs text-stone-600">
-                    <span className="text-stone-400">{event.targetType}</span>{' '}
-                    <span className="font-mono">{event.targetId}</span>
+                  <Td className="font-mono text-xs font-bold text-white">{event.action}</Td>
+                  <Td className="text-xs text-stone-300">
+                    <span className="text-stone-500 font-mono">{event.targetType}</span>{' '}
+                    <span className="font-mono text-[#4FD68C]">{event.targetId}</span>
                   </Td>
-                  <Td className="max-w-md text-xs text-stone-700">
+                  <Td className="max-w-md text-xs text-stone-300">
                     <span className="line-clamp-2">{event.reason ?? '-'}</span>
                   </Td>
                   <Td>
                     <button
                       type="button"
                       onClick={() => setExpanded(event)}
-                      className="text-xs text-stone-600 underline"
+                      className="text-xs font-semibold text-[#4FD68C] hover:text-white transition-colors"
                     >
-                      Detail
+                      Detail &rarr;
                     </button>
                   </Td>
                 </tr>
@@ -139,38 +140,38 @@ export function AuditPage() {
               <button
                 type="button"
                 onClick={() => setExpanded(null)}
-                className="text-xs text-stone-600 underline"
+                className="text-xs font-semibold text-stone-400 hover:text-white transition-colors"
               >
-                Close
+                Close &times;
               </button>
             }
           >
-            <dl className="grid grid-cols-1 gap-y-2 text-xs sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-y-2 text-xs sm:grid-cols-2 bg-[#0C1A14] p-4 rounded-2xl border border-[#1E3A2B]">
               <div>
-                <dt className="font-medium text-stone-600">Action</dt>
-                <dd className="font-mono text-stone-900">{expanded.action}</dd>
+                <dt className="font-mono uppercase text-[10px] text-stone-400">Action</dt>
+                <dd className="font-mono text-white font-bold">{expanded.action}</dd>
               </div>
               <div>
-                <dt className="font-medium text-stone-600">Actor</dt>
-                <dd className="text-stone-900">
-                  {expanded.actorRole} &middot; <span className="font-mono">{expanded.actorUserId}</span>
+                <dt className="font-mono uppercase text-[10px] text-stone-400">Actor</dt>
+                <dd className="text-stone-200">
+                  {expanded.actorRole} &middot; <span className="font-mono text-[#4FD68C]">{expanded.actorUserId}</span>
                 </dd>
               </div>
               <div>
-                <dt className="font-medium text-stone-600">Target</dt>
-                <dd className="font-mono text-stone-900">
+                <dt className="font-mono uppercase text-[10px] text-stone-400">Target</dt>
+                <dd className="font-mono text-stone-200">
                   {expanded.targetType}/{expanded.targetId}
                 </dd>
               </div>
               <div>
-                <dt className="font-medium text-stone-600">Timestamp</dt>
-                <dd className="text-stone-900">{formatDateTime(expanded.at)}</dd>
+                <dt className="font-mono uppercase text-[10px] text-stone-400">Timestamp</dt>
+                <dd className="text-stone-300 font-mono">{formatDateTime(expanded.at)}</dd>
               </div>
             </dl>
             {expanded.reason ? (
               <div className="mt-3">
-                <p className="text-xs font-medium text-stone-600">Reason recorded</p>
-                <p className="mt-1 rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-800">
+                <p className="text-[10px] font-mono uppercase text-stone-400 mb-1">Reason recorded</p>
+                <p className="rounded-xl border border-[#1E3A2B] bg-[#0C1A14] p-3 text-xs text-white">
                   {expanded.reason}
                 </p>
               </div>
@@ -179,16 +180,16 @@ export function AuditPage() {
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {expanded.before ? (
                   <div>
-                    <p className="text-xs font-medium text-stone-600">Before</p>
-                    <pre className="mt-1 overflow-x-auto rounded-md border border-stone-200 bg-stone-50 p-2 text-[11px] text-stone-700">
+                    <p className="text-[10px] font-mono uppercase text-stone-400 mb-1">Before</p>
+                    <pre className="overflow-x-auto rounded-xl border border-[#1E3A2B] bg-[#0C1A14] p-3 text-[11px] font-mono text-stone-300">
                       {expanded.before}
                     </pre>
                   </div>
                 ) : null}
                 {expanded.after ? (
                   <div>
-                    <p className="text-xs font-medium text-stone-600">After</p>
-                    <pre className="mt-1 overflow-x-auto rounded-md border border-stone-200 bg-stone-50 p-2 text-[11px] text-stone-700">
+                    <p className="text-[10px] font-mono uppercase text-stone-400 mb-1">After</p>
+                    <pre className="overflow-x-auto rounded-xl border border-[#1E3A2B] bg-[#0C1A14] p-3 text-[11px] font-mono text-[#4FD68C]">
                       {expanded.after}
                     </pre>
                   </div>

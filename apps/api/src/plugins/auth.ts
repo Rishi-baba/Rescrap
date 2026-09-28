@@ -52,7 +52,7 @@ export function registerAuth(app: FastifyInstance, config: ApiConfig): void {
 
     const verified = verifyToken(token, config.jwtSecret, 'access');
     if (!verified.ok) {
-      const expired = verified.reason === 'EXPIRED';
+      const expired = 'reason' in verified && verified.reason === 'EXPIRED';
       throw new ApiHttpError(401, {
         code: expired ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN',
         message: expired

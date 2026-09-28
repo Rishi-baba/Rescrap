@@ -6,10 +6,12 @@ const port = Number.parseInt(process.env['COLLECTOR_PORT'] ?? '5176', 10);
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: true,
     port,
     strictPort: true,
   },
   preview: {
+    host: true,
     port,
     strictPort: true,
   },

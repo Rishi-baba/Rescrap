@@ -32,12 +32,12 @@ interface AnomalyFlag {
 
 function confidenceTone(confidence: number): string {
   if (confidence >= 0.8) {
-    return 'bg-emerald-100 text-emerald-900';
+    return 'bg-[#163324] text-[#4FD68C] border-[#2FBF71]/30';
   }
   if (confidence >= 0.5) {
-    return 'bg-amber-100 text-amber-900';
+    return 'bg-amber-950/40 text-amber-300 border-amber-600/40';
   }
-  return 'bg-rose-100 text-rose-900';
+  return 'bg-rose-950/40 text-rose-300 border-rose-800/40';
 }
 
 export function ExceptionsPage() {
@@ -81,12 +81,12 @@ export function ExceptionsPage() {
   const modelBacked = predictions.filter((prediction) => prediction.method === 'model').length;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4 text-[#F5EFE6]">
       {error ? <ErrorNotice error={error} /> : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Total flags" value={String(flags.length)} />
-        <Stat label="High severity" value={String(high)} tone={high > 0 ? 'text-rose-700' : 'text-stone-900'} />
+        <Stat label="High severity" value={String(high)} tone={high > 0 ? 'text-rose-400' : 'text-white'} />
         <Stat
           label="AI outputs logged"
           value={String(predictions.length)}
@@ -109,13 +109,13 @@ export function ExceptionsPage() {
         ) : (
           <Table head={['Severity', 'Code', 'Lot', 'Explanation']}>
             {flags.map((flag) => (
-              <tr key={`${flag.lotId}-${flag.code}`} className="hover:bg-stone-50">
+              <tr key={`${flag.lotId}-${flag.code}`} className="hover:bg-[#163324]/40 transition-colors">
                 <Td>
                   <SeverityPill severity={flag.severity} />
                 </Td>
-                <Td className="font-mono text-xs text-stone-800">{flag.code}</Td>
-                <Td className="font-mono text-xs text-stone-700">{flag.lotId ?? '-'}</Td>
-                <Td className="text-sm text-stone-700">{flag.message}</Td>
+                <Td className="font-mono text-xs font-bold text-white">{flag.code}</Td>
+                <Td className="font-mono text-xs text-[#4FD68C]">{flag.lotId ?? '-'}</Td>
+                <Td className="text-sm text-stone-300">{flag.message}</Td>
               </tr>
             ))}
           </Table>
@@ -127,8 +127,8 @@ export function ExceptionsPage() {
         subtitle="Every automated suggestion the system made, with the method that produced it."
         action={<DemoTag label="RULE DERIVED" />}
       >
-        <p className="mb-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-950">
-          <strong>No trained model is running in this build.</strong> Each row shows the capability,
+        <p className="mb-4 rounded-2xl border border-amber-600/40 bg-amber-950/40 p-3.5 text-xs text-amber-300">
+          <strong className="text-amber-200">No trained model is running in this build.</strong> Each row shows the capability,
           the method that produced it, and the confidence the system assigned. Confidence is
           reported, never invented, and no accuracy claim is made.
         </p>
@@ -137,33 +137,33 @@ export function ExceptionsPage() {
         ) : (
           <Table head={['Capability', 'Method', 'Result', 'Confidence', 'Applied to', 'Corrected', 'When']}>
             {predictions.map((prediction) => (
-              <tr key={prediction.id} className="hover:bg-stone-50">
-                <Td className="text-xs text-stone-800">{prediction.capability.replace(/_/g, ' ')}</Td>
+              <tr key={prediction.id} className="hover:bg-[#163324]/40 transition-colors">
+                <Td className="text-xs font-mono font-semibold text-white">{prediction.capability.replace(/_/g, ' ')}</Td>
                 <Td>
                   <DemoTag label={prediction.method.toUpperCase()} />
                   {prediction.modelVersion ? (
-                    <p className="mt-0.5 font-mono text-[11px] text-stone-500">{prediction.modelVersion}</p>
+                    <p className="mt-0.5 font-mono text-[10px] text-stone-500">{prediction.modelVersion}</p>
                   ) : null}
                 </Td>
-                <Td className="text-sm text-stone-700">{prediction.result}</Td>
+                <Td className="text-sm text-stone-300">{prediction.result}</Td>
                 <Td>
                   <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${confidenceTone(prediction.confidence)}`}
+                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-mono font-bold tabular-nums border ${confidenceTone(prediction.confidence)}`}
                   >
                     {(prediction.confidence * 100).toFixed(0)}%
                   </span>
                 </Td>
-                <Td className="font-mono text-[11px] text-stone-600">
+                <Td className="font-mono text-[11px] text-[#4FD68C]">
                   {prediction.lotId ?? prediction.lotItemId ?? '-'}
                 </Td>
-                <Td className="text-xs text-stone-600">
+                <Td className="text-xs">
                   {prediction.correctedAt ? (
-                    <span className="text-amber-800">Yes, by a human</span>
+                    <span className="text-amber-400 font-mono text-[11px]">Yes, by human</span>
                   ) : (
-                    <span className="text-stone-400">Not corrected</span>
+                    <span className="text-stone-500 font-mono text-[11px]">Not corrected</span>
                   )}
                 </Td>
-                <Td className="text-xs whitespace-nowrap text-stone-500">
+                <Td className="text-xs whitespace-nowrap text-stone-400 font-mono">
                   {formatDateTime(prediction.createdAt)}
                 </Td>
               </tr>
@@ -173,7 +173,7 @@ export function ExceptionsPage() {
       </Card>
 
       <DemoBoundary isDemo={predictions.every((prediction) => prediction.demo)}>
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-stone-500 font-mono">
           This screen reports what the system did, so an operator can audit it. It does not
           forecast demand: no demand model exists in this build.
         </p>

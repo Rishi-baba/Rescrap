@@ -26,6 +26,7 @@ export interface PriceDisplayProps {
   size?: 'sm' | 'md' | 'lg' | 'display';
   isEstimate?: boolean;
   approximate?: boolean;
+  tone?: 'default' | 'light' | 'emerald';
   className?: string;
 }
 
@@ -36,24 +37,31 @@ const sizeStyles = {
   display: 'text-3xl lg:text-4xl font-black',
 };
 
+const toneStyles = {
+  default: 'text-stone-900',
+  light: 'text-stone-100',
+  emerald: 'text-[#34D399]',
+};
+
 export const PriceDisplay: React.FC<PriceDisplayProps> = ({
   paise,
   label,
   size = 'md',
   isEstimate = false,
   approximate = false,
+  tone = 'default',
   className = '',
 }) => {
   const shouldApproximate = approximate || isEstimate;
   return (
     <div className={`inline-flex flex-col ${className}`}>
-      {label ? <span className="text-xs text-stone-500 font-medium mb-0.5">{label}</span> : null}
+      {label ? <span className="text-xs text-stone-400 font-medium mb-0.5">{label}</span> : null}
       <div className="flex items-baseline gap-1.5">
-        <span className={`font-mono tracking-tight text-stone-900 ${sizeStyles[size]}`}>
+        <span className={`font-mono tracking-tight ${toneStyles[tone]} ${sizeStyles[size]}`}>
           {shouldApproximate ? formatApproximatePaise(paise) : formatPaiseToInr(paise)}
         </span>
         {isEstimate ? (
-          <span className="text-xs uppercase font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+          <span className="text-xs uppercase font-extrabold text-amber-950 bg-[#F5E6B3] px-2 py-0.5 rounded border border-amber-300">
             Est.
           </span>
         ) : null}

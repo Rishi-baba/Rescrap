@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm --filter @rescrap/admin-web build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

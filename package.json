@@ -21,6 +21,7 @@
     "verify": "pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
+    "puppeteer-core": "^25.12.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   }

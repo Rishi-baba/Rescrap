@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DemoBanner, StatusPill } from '@rescrap/design-system';
+import { DemoBanner } from '@rescrap/design-system';
 import { useI18n } from '../lib/i18n.js';
 import { offlineDb, type LocalScrapLot } from '../lib/offline-db.js';
 
@@ -77,52 +77,57 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
   const totalWeightKg = completedLots.reduce((acc, l) => acc + l.declaredWeightKg, 0);
 
   return (
-    <div className="flex flex-col gap-4 pb-24">
+    <div className="flex flex-col gap-4 pb-24 text-stone-100">
       {/* Title */}
       <div>
-        <h2 className="text-xl font-extrabold text-stone-900">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-[#4FD68C]">
+          Financial Ledger
+        </span>
+        <h2 className="text-xl font-black text-white mt-0.5">
           {locale === 'hi' ? 'मेरी कमाई व भुगतान' : locale === 'mr' ? 'माझी कमाई आणि पेमेंट्स' : 'Earnings & Settlements'}
         </h2>
-        <p className="text-xs text-stone-500 mt-1">
+        <p className="text-xs text-stone-400 mt-1">
           {locale === 'hi'
             ? 'अधिकृत रीसायकलर्स से सीधे आपके बैंक / UPI खाते में पारदर्शी भुगतान'
-            : 'Direct formal payments credited to your account with zero middlemen deductions'}
+            : 'Direct formal payments credited to your account with zero middleman deductions'}
         </p>
       </div>
 
       <DemoBanner />
 
       {/* Main Earnings Hero Card */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 text-white shadow-lg">
+      <div className="p-5 rounded-2xl bg-gradient-to-br from-[#122E22] via-[#0E261C] to-[#0A1A13] border border-[#1E3A2B] text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[#2FBF71]/10 rounded-bl-full pointer-events-none" />
+
         <div className="flex justify-between items-start">
           <div>
-            <span className="text-xs uppercase tracking-wider font-semibold text-emerald-200">
+            <span className="text-[10px] uppercase font-mono tracking-wider font-semibold text-[#4FD68C]">
               {locale === 'hi' ? 'कुल प्राप्त राशि' : 'Total Confirmed Payouts'}
             </span>
-            <div className="text-3xl font-extrabold font-mono mt-1 tracking-tight">
-              Around ₹{Math.round(totalConfirmedPaise / 100).toLocaleString('en-IN')}
+            <div className="text-3xl font-extrabold font-mono mt-1 tracking-tight text-white">
+              ₹{Math.round(totalConfirmedPaise / 100).toLocaleString('en-IN')}
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-[#163324] text-[#4FD68C] border border-[#2FBF71]/30">
             UPI: sunita@oksbi
           </span>
         </div>
 
         {/* Secondary Stats Row */}
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-emerald-700/60">
-          <div>
-            <span className="text-[11px] text-emerald-200 font-medium">
-              {locale === 'hi' ? 'प्रक्रिया में (लंबित)' : 'Pending Verification'}
+        <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-[#1E3A2B]">
+          <div className="p-2.5 rounded-xl bg-[#08150F]/60 border border-[#162E21]">
+            <span className="text-[10px] font-mono text-stone-400 block uppercase">
+              {locale === 'hi' ? 'प्रक्रिया में (लंबित)' : 'Pending Payouts'}
             </span>
-            <div className="text-base font-bold font-mono text-emerald-100">
-              Around ₹{Math.round(pendingPaise / 100).toLocaleString('en-IN')}
+            <div className="text-base font-bold font-mono text-stone-200 mt-0.5">
+              ₹{Math.round(pendingPaise / 100).toLocaleString('en-IN')}
             </div>
           </div>
-          <div>
-            <span className="text-[11px] text-emerald-200 font-medium">
-              {locale === 'hi' ? 'कुल वजन निपटाया' : 'Total Scrap Recycled'}
+          <div className="p-2.5 rounded-xl bg-[#08150F]/60 border border-[#162E21]">
+            <span className="text-[10px] font-mono text-stone-400 block uppercase">
+              {locale === 'hi' ? 'कुल वजन निपटाया' : 'Total Diverted'}
             </span>
-            <div className="text-base font-bold font-mono text-emerald-100">
+            <div className="text-base font-bold font-mono text-[#4FD68C] mt-0.5">
               {totalWeightKg.toFixed(1)} kg
             </div>
           </div>
@@ -130,14 +135,14 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
       </div>
 
       {/* Period Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-stone-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-[#1E3A2B] pb-2">
         <button
           type="button"
           onClick={() => setSelectedPeriod('ALL')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             selectedPeriod === 'ALL'
-              ? 'bg-emerald-800 text-white'
-              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              ? 'bg-[#1E8E53] text-[#07130D]'
+              : 'bg-[#12231B] text-stone-400 hover:text-white border border-[#1E3A2B]'
           }`}
         >
           {locale === 'hi' ? 'सभी समय' : 'All Time'}
@@ -145,10 +150,10 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
         <button
           type="button"
           onClick={() => setSelectedPeriod('MONTH')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             selectedPeriod === 'MONTH'
-              ? 'bg-emerald-800 text-white'
-              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              ? 'bg-[#1E8E53] text-[#07130D]'
+              : 'bg-[#12231B] text-stone-400 hover:text-white border border-[#1E3A2B]'
           }`}
         >
           {locale === 'hi' ? 'इस महीने' : 'This Month'}
@@ -156,10 +161,10 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
         <button
           type="button"
           onClick={() => setSelectedPeriod('WEEK')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             selectedPeriod === 'WEEK'
-              ? 'bg-emerald-800 text-white'
-              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              ? 'bg-[#1E8E53] text-[#07130D]'
+              : 'bg-[#12231B] text-stone-400 hover:text-white border border-[#1E3A2B]'
           }`}
         >
           {locale === 'hi' ? 'इस सप्ताह' : 'This Week'}
@@ -168,12 +173,12 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
 
       {/* Payment Ledger Section */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-stone-900">
+        <div className="flex items-center justify-between mb-2.5">
+          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-stone-400">
             {locale === 'hi' ? 'लेन-देन इतिहास' : 'Settlement Ledger'}
           </h3>
-          <span className="text-xs text-stone-500 font-medium">
-            {completedLots.length} records
+          <span className="text-[10px] font-mono text-stone-500">
+            {completedLots.length} records verified
           </span>
         </div>
 
@@ -188,35 +193,38 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
             return (
               <div
                 key={lot.id}
-                className="p-3.5 rounded-xl border border-stone-200 bg-white shadow-xs flex flex-col gap-2.5"
+                className="p-3.5 rounded-xl border border-[#1E3A2B] bg-[#12231B] shadow-sm flex flex-col gap-2.5"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-bold text-stone-900 text-sm">{lot.materialName}</h4>
-                    <p className="text-[11px] text-stone-500 mt-0.5">
-                      Recycler: <strong className="text-stone-700">EcoRecycle Maharashtra</strong> &bull; {dateStr}
+                    <h4 className="font-bold text-white text-sm">{lot.materialName}</h4>
+                    <p className="text-[11px] text-stone-400 mt-0.5">
+                      Recycler: <strong className="text-stone-300">Apex E-Waste Recyclers</strong> &bull; {dateStr}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-base font-extrabold text-emerald-800 font-mono">
-                      Around ₹{Math.round(lot.estimatedValuePaise / 100).toLocaleString('en-IN')}
+                    <div className="text-base font-extrabold text-[#4FD68C] font-mono">
+                      ₹{Math.round(lot.estimatedValuePaise / 100).toLocaleString('en-IN')}
                     </div>
-                    <span className="text-[11px] text-stone-500 font-medium">
+                    <span className="text-[11px] text-stone-400 font-mono">
                       {lot.declaredWeightKg} kg
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                  <StatusPill status="success" label="PAID VIA UPI" />
+                <div className="flex items-center justify-between pt-2 border-t border-[#1E3A2B]/60">
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#4FD68C] bg-[#163324] px-2 py-0.5 rounded border border-[#2FBF71]/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4FD68C]" />
+                    <span>PAID VIA UPI</span>
+                  </div>
 
                   {onOpenLotPassport && (
                     <button
                       type="button"
                       onClick={() => onOpenLotPassport(lot.id)}
-                      className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1"
+                      className="text-xs font-semibold text-[#4FD68C] hover:text-white flex items-center gap-1 transition-colors"
                     >
-                      <span>📜 Digital Passport</span>
+                      <span>Digital Passport</span>
                       <span>&rarr;</span>
                     </button>
                   )}
@@ -228,11 +236,15 @@ export const EarningsView: React.FC<EarningsViewProps> = ({ onOpenLotPassport })
       </div>
 
       {/* Trust & Guarantee Box */}
-      <div className="p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/60 flex items-start gap-2.5 text-xs text-emerald-950">
-        <span className="text-xl">🛡️</span>
+      <div className="p-3.5 rounded-xl border border-[#1E3A2B] bg-[#0E2018] flex items-start gap-3 text-xs text-stone-300">
+        <div className="w-7 h-7 rounded-lg bg-[#163324] border border-[#2FBF71]/40 text-[#4FD68C] flex items-center justify-center shrink-0">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
         <div>
-          <strong className="block font-bold">100% Direct Payout Guarantee</strong>
-          <span>
+          <strong className="block font-bold text-white">100% Direct Payout Guarantee</strong>
+          <span className="text-stone-400 mt-0.5 block leading-relaxed">
             ReScrap guarantees exact weight payouts. In case of any dispute or weight mismatch over 10%, our fair mediation team steps in immediately.
           </span>
         </div>

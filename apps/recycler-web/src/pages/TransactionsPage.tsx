@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, StatusPill, Button, LoadingState, ErrorState, PriceDisplay } from '@rescrap/design-system';
+import { Button, LoadingState, ErrorState, PriceDisplay } from '@rescrap/design-system';
 import { recyclerSession } from '../lib/session.js';
 import type { RecyclerTransactionItem } from '../lib/api.js';
 
@@ -26,69 +26,74 @@ export const TransactionsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6 text-[#F5EFE6]">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-stone-900">Transaction History &amp; Traceability</h2>
-          <p className="text-xs text-stone-500">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#4FD68C]">
+            Immutable Traceability Ledger &bull; ESG Provenance
+          </span>
+          <h2 className="text-2xl font-black text-white mt-0.5">Transaction History &amp; Traceability</h2>
+          <p className="text-xs text-stone-400 mt-1">
             Immutable records of finalized custody transfers, simulated payouts and ESG compliance hashes
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={loadTxns}>
-          Refresh
+          Refresh Ledger
         </Button>
       </div>
 
       {isLoading ? (
-        <LoadingState label="Loading immutable transaction ledger..." />
+        <LoadingState label="Loading immutable transaction ledger..." className="py-16 text-stone-300" />
       ) : error ? (
         <ErrorState message={error} onRetry={loadTxns} />
       ) : txns.length === 0 ? (
-        <Card className="p-12 text-center">
-          <p className="text-sm font-semibold text-stone-700">No completed transactions yet.</p>
-          <p className="text-xs text-stone-500 mt-1">
+        <div className="p-12 text-center rounded-3xl bg-[#12231B] border border-[#1E3A2B]">
+          <p className="text-sm font-semibold text-white">No completed transactions yet.</p>
+          <p className="text-xs text-stone-400 mt-1">
             Completed handovers with verified collector sign-off will record here permanently.
           </p>
-        </Card>
+        </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
-          <table className="w-full text-left text-sm text-stone-700 divide-y divide-stone-200">
-            <thead className="bg-stone-50 text-xs uppercase font-semibold text-stone-500 tracking-wider">
+        <div className="overflow-x-auto rounded-3xl border border-[#1E3A2B] bg-[#12231B] shadow-xl">
+          <table className="w-full text-left text-sm text-stone-300 divide-y divide-[#1E3A2B]">
+            <thead className="bg-[#0C1A14] text-[10px] uppercase font-mono font-bold text-stone-400 tracking-wider">
               <tr>
-                <th className="px-4 py-3">Transaction ID</th>
-                <th className="px-4 py-3">Lot ID</th>
-                <th className="px-4 py-3">Material</th>
-                <th className="px-4 py-3">Reconciled Weight</th>
-                <th className="px-4 py-3 text-right">Settled Value</th>
-                <th className="px-4 py-3">Settlement</th>
-                <th className="px-4 py-3">Traceability Hash</th>
-                <th className="px-4 py-3">Completed At</th>
+                <th className="px-5 py-3.5">Transaction ID</th>
+                <th className="px-5 py-3.5">Lot ID</th>
+                <th className="px-5 py-3.5">Material</th>
+                <th className="px-5 py-3.5">Reconciled Weight</th>
+                <th className="px-5 py-3.5 text-right">Settled Value</th>
+                <th className="px-5 py-3.5">Settlement</th>
+                <th className="px-5 py-3.5">Traceability Hash</th>
+                <th className="px-5 py-3.5">Completed At</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
+            <tbody className="divide-y divide-[#1E3A2B]/60 bg-[#12231B]">
               {txns.map((txn) => (
-                <tr key={txn.id} className="hover:bg-stone-50/50">
-                  <td className="px-4 py-3 font-mono text-xs text-stone-500">{txn.id}</td>
-                  <td className="px-4 py-3 font-mono text-xs font-semibold text-stone-700">{txn.lotId}</td>
-                  <td className="px-4 py-3 font-semibold text-stone-900">{txn.materialName}</td>
-                  <td className="px-4 py-3 font-medium text-stone-800 tabular-nums">
+                <tr key={txn.id} className="hover:bg-[#163324]/40 transition-colors">
+                  <td className="px-5 py-4 font-mono text-xs text-stone-400">{txn.id}</td>
+                  <td className="px-5 py-4 font-mono text-xs text-[#4FD68C]">{txn.lotId}</td>
+                  <td className="px-5 py-4 font-bold text-white">{txn.materialName}</td>
+                  <td className="px-5 py-4 font-mono font-bold text-white tabular-nums">
                     {txn.finalWeightKg} kg
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-5 py-4 text-right">
                     <PriceDisplay paise={txn.finalAmountPaise} size="sm" />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4">
                     <div className="flex items-center gap-1.5">
-                      <StatusPill status="success" label="CONFIRMED" />
-                      <span className="text-[10px] font-mono text-amber-700 bg-amber-50 px-1 py-0.5 rounded border border-amber-200">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#163324] text-[#4FD68C] border border-[#2FBF71]/40">
+                        CONFIRMED
+                      </span>
+                      <span className="text-[10px] font-mono text-amber-300 bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-600/40">
                         SIMULATED
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-mono text-[11px] text-emerald-800 truncate max-w-[140px]" title={txn.traceabilityHash}>
+                  <td className="px-5 py-4 font-mono text-[11px] text-[#4FD68C] truncate max-w-[140px]" title={txn.traceabilityHash}>
                     {txn.traceabilityHash}
                   </td>
-                  <td className="px-4 py-3 text-xs text-stone-500">
+                  <td className="px-5 py-4 text-xs font-mono text-stone-400">
                     {new Date(txn.completedAt).toLocaleDateString()}
                   </td>
                 </tr>

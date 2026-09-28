@@ -45,15 +45,17 @@ export const App: React.FC = () => {
   // Handover flow
   if (activeFlow === 'handover') {
     return (
-      <div className="min-h-screen bg-stone-50 max-w-md mx-auto flex flex-col">
-        <HandoverView
-          lotId={selectedLotId}
-          onBack={() => setActiveFlow(null)}
-          onDone={() => {
-            setActiveFlow(null);
-            setActiveTab('home');
-          }}
-        />
+      <div className="min-h-screen bg-[#070F0B] flex justify-center text-stone-100">
+        <div className="w-full max-w-md min-h-screen bg-[#0C1A14] shadow-2xl flex flex-col relative border-x border-[#1C3326]">
+          <HandoverView
+            lotId={selectedLotId}
+            onBack={() => setActiveFlow(null)}
+            onDone={() => {
+              setActiveFlow(null);
+              setActiveTab('home');
+            }}
+          />
+        </div>
       </div>
     );
   }
@@ -61,12 +63,14 @@ export const App: React.FC = () => {
   // Competing Recycler Offers / Matches flow
   if (activeFlow === 'matches') {
     return (
-      <div className="min-h-screen bg-stone-50 max-w-md mx-auto flex flex-col">
-        <RecyclerMatchesView
-          lotId={selectedLotId}
-          onBack={() => setActiveFlow(null)}
-          onProceedToHandover={() => setActiveFlow('handover')}
-        />
+      <div className="min-h-screen bg-[#070F0B] flex justify-center text-stone-100">
+        <div className="w-full max-w-md min-h-screen bg-[#0C1A14] shadow-2xl flex flex-col relative border-x border-[#1C3326]">
+          <RecyclerMatchesView
+            lotId={selectedLotId}
+            onBack={() => setActiveFlow(null)}
+            onProceedToHandover={() => setActiveFlow('handover')}
+          />
+        </div>
       </div>
     );
   }
@@ -74,22 +78,24 @@ export const App: React.FC = () => {
   // Add Scrap Camera & AI Stepper flow
   if (activeFlow === 'add-scrap') {
     return (
-      <div className="min-h-screen bg-stone-50 max-w-md mx-auto flex flex-col">
-        <AddScrapFlow
-          onCancel={() => setActiveFlow(null)}
-          onComplete={(newLotId) => {
-            setSelectedLotId(newLotId);
-            setActiveFlow('matches');
-          }}
-        />
+      <div className="min-h-screen bg-[#070F0B] flex justify-center text-stone-100">
+        <div className="w-full max-w-md min-h-screen bg-[#0C1A14] shadow-2xl flex flex-col relative border-x border-[#1C3326]">
+          <AddScrapFlow
+            onCancel={() => setActiveFlow(null)}
+            onComplete={(newLotId) => {
+              setSelectedLotId(newLotId);
+              setActiveFlow('matches');
+            }}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 flex justify-center">
+    <div className="min-h-screen bg-[#070F0B] flex justify-center text-stone-100">
       {/* Mobile constraint frame */}
-      <div className="w-full max-w-md min-h-screen bg-stone-50 shadow-2xl flex flex-col relative border-x border-stone-200">
+      <div className="w-full max-w-md min-h-screen bg-[#0C1A14] shadow-2xl flex flex-col relative border-x border-[#1C3326]">
         {/* Sticky Mobile Header */}
         <Header
           onOpenLanguage={() => setIsLanguageModalOpen(true)}
@@ -98,7 +104,7 @@ export const App: React.FC = () => {
         />
 
         {/* Tab Content */}
-        <main className="flex-1 p-4 overflow-y-auto">
+        <main className="flex-1 p-3.5 sm:p-4 overflow-y-auto">
           {activeTab === 'home' && (
             <HomeView
               onStartAddScrap={() => setActiveFlow('add-scrap')}
@@ -148,8 +154,12 @@ export const App: React.FC = () => {
           )}
         </main>
 
-        {/* 5-Tab Fixed Bottom Navigation */}
-        <BottomNav activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab)} />
+        {/* 5-Tab Fixed Bottom Navigation with elevated Center Camera button */}
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={(tab) => setActiveTab(tab)}
+          onStartAddScrap={() => setActiveFlow('add-scrap')}
+        />
 
         {/* Language Modal */}
         <LanguageModal

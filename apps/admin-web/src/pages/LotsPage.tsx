@@ -99,7 +99,7 @@ export function LotsPage() {
 
   return (
     <DemoBoundary isDemo={lots.every((lot) => lot.demo)}>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4 text-[#F5EFE6]">
         {error ? <ErrorNotice error={error} /> : null}
 
         <Card
@@ -107,17 +107,17 @@ export function LotsPage() {
           subtitle="One row per Lot. The Collector, Recycler and Admin views are projections of this same record."
           action={<DemoTag label="NO REAL MONEY" />}
         >
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap gap-1">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-1.5">
               {FILTERS.map((option) => (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => setFilter(option.id)}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+                  className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all border ${
                     filter === option.id
-                      ? 'bg-stone-900 text-white'
-                      : 'border border-stone-300 bg-white text-stone-700 hover:bg-stone-50'
+                      ? 'bg-[#1E8E53] text-[#07130D] border-[#2FBF71] font-bold shadow-md'
+                      : 'border-[#1E3A2B] bg-[#0C1A14] text-stone-400 hover:text-white hover:bg-[#163324]'
                   }`}
                 >
                   {option.label}
@@ -125,13 +125,13 @@ export function LotsPage() {
                 </button>
               ))}
             </div>
-            <label className="text-xs text-stone-600">
+            <label className="text-xs text-stone-400">
               <span className="sr-only">Search by lot id</span>
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search lot id"
-                className="w-44 rounded-md border border-stone-300 px-2 py-1 text-sm focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+                placeholder="Search lot id..."
+                className="w-48 rounded-xl border border-[#1E3A2B] bg-[#0C1A14] px-3 py-1.5 text-xs text-white placeholder-stone-500 focus:border-[#2FBF71] focus:ring-1 focus:ring-[#2FBF71] focus:outline-none font-mono"
               />
             </label>
           </div>
@@ -154,45 +154,45 @@ export function LotsPage() {
               ]}
             >
               {visible.map((lot) => (
-                <tr key={lot.id} className="hover:bg-stone-50">
+                <tr key={lot.id} className="hover:bg-[#163324]/40 transition-colors">
                   <Td>
-                    <span className="font-mono text-xs font-semibold text-stone-900">{lot.id}</span>
-                    <p className="mt-0.5 text-xs text-stone-500">
+                    <span className="font-mono text-xs font-bold text-white">{lot.id}</span>
+                    <p className="mt-0.5 text-[11px] text-stone-400 font-mono">
                       {lot.items.length} item{lot.items.length === 1 ? '' : 's'}
                     </p>
                   </Td>
                   <Td>
                     <LotStatePill state={lot.state} />
                   </Td>
-                  <Td className="tabular-nums text-stone-700">{formatWeight(lot.totalWeightKg)}</Td>
-                  <Td className="tabular-nums text-stone-700">{formatMoney(lot.estimatedValue)}</Td>
-                  <Td className="tabular-nums text-stone-700">{lot.offerCount}</Td>
-                  <Td className="text-xs text-stone-600">{lot.handoverState ?? '-'}</Td>
+                  <Td className="tabular-nums font-mono text-white text-xs">{formatWeight(lot.totalWeightKg)}</Td>
+                  <Td className="tabular-nums font-mono text-[#4FD68C] text-xs font-bold">{formatMoney(lot.estimatedValue)}</Td>
+                  <Td className="tabular-nums font-mono text-stone-300 text-xs">{lot.offerCount}</Td>
+                  <Td className="text-xs text-stone-400 font-mono">{lot.handoverState ?? '-'}</Td>
                   <Td>
                     {lot.paymentState ? (
-                      <Badge
-                        tone={
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${
                           lot.paymentState === 'CONFIRMED'
-                            ? 'bg-emerald-100 text-emerald-900'
+                            ? 'bg-[#163324] text-[#4FD68C] border-[#2FBF71]/30'
                             : lot.paymentState === 'DISPUTED'
-                              ? 'bg-rose-100 text-rose-900'
-                              : 'bg-amber-100 text-amber-900'
-                        }
+                              ? 'bg-rose-950/40 text-rose-300 border-rose-800/40'
+                              : 'bg-amber-950/40 text-amber-300 border-amber-600/40'
+                        }`}
                       >
                         {lot.paymentState}
-                      </Badge>
+                      </span>
                     ) : (
-                      <span className="text-xs text-stone-400">-</span>
+                      <span className="text-xs text-stone-500 font-mono">-</span>
                     )}
                   </Td>
-                  <Td className="text-xs text-stone-600">{lot.transactionStatus ?? '-'}</Td>
+                  <Td className="text-xs text-stone-400 font-mono">{lot.transactionStatus ?? '-'}</Td>
                   <Td>
                     {lot.anomalyFlags.length === 0 && !lot.requiresReview ? (
-                      <span className="text-xs text-stone-400">Clear</span>
+                      <span className="text-xs text-stone-500 font-mono">Clear</span>
                     ) : (
                       <div className="flex flex-col gap-1">
                         {lot.requiresReview ? (
-                          <Badge tone="bg-amber-100 text-amber-900">Weight review</Badge>
+                          <Badge tone="bg-amber-950/40 text-amber-300 border-amber-600/40">Weight review</Badge>
                         ) : null}
                         {lot.anomalyFlags.map((flag) => (
                           <span
@@ -201,13 +201,13 @@ export function LotsPage() {
                             className="inline-flex items-center gap-1"
                           >
                             <SeverityPill severity={flag.severity} />
-                            <span className="font-mono text-[11px] text-stone-600">{flag.code}</span>
+                            <span className="font-mono text-[10px] text-stone-400">{flag.code}</span>
                           </span>
                         ))}
                       </div>
                     )}
                   </Td>
-                  <Td className="text-xs whitespace-nowrap text-stone-500">
+                  <Td className="text-xs whitespace-nowrap text-stone-400 font-mono">
                     {formatDateTime(lot.updatedAt)}
                   </Td>
                 </tr>
@@ -216,7 +216,7 @@ export function LotsPage() {
           )}
         </Card>
 
-        <p className="text-xs text-stone-500">
+        <p className="text-xs text-stone-400 font-mono">
           Showing {visible.length} of {lots.length} lots. A completed lot produces exactly one
           transaction; no screen can create a second.
         </p>

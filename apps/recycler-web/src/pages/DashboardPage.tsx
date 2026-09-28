@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardHeader, CardBody, Badge, Button, LoadingState, ErrorState, PriceDisplay } from '@rescrap/design-system';
+import { Button, LoadingState, ErrorState, PriceDisplay } from '@rescrap/design-system';
 import { recyclerSession } from '../lib/session.js';
 import type { RecyclerDashboardData } from '../lib/api.js';
 
 interface DashboardPageProps {
   onNavigate: (screen: 'available-lots' | 'deals' | 'offers') => void;
 }
+
+const getMaterialImage = (name: string, category: string): string => {
+  const lower = `${name} ${category}`.toLowerCase();
+  if (lower.includes('copper') || lower.includes('wire')) return '/assets/mat-copper.jpg';
+  if (lower.includes('phone') || lower.includes('mobile')) return '/assets/mat-phones.jpg';
+  if (lower.includes('aluminium') || lower.includes('heatsink') || lower.includes('metal')) return '/assets/mat-aluminium.jpg';
+  return '/assets/mat-motherboard.jpg';
+};
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [data, setData] = useState<RecyclerDashboardData | null>(null);
@@ -29,7 +37,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     void loadDashboard();
   }, []);
 
-  if (isLoading) return <LoadingState label="Loading operational dashboard..." />;
+  if (isLoading) return <LoadingState label="Loading operational dashboard..." className="text-stone-300 py-12" />;
   if (error) return <ErrorState message={error} onRetry={loadDashboard} />;
   if (!data) return null;
 
@@ -44,173 +52,200 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       value: data.newLotsCount ?? 0,
       rationale: 'Should I bid now?',
       onClick: () => onNavigate('available-lots'),
-      color: 'border-l-4 border-l-emerald-500',
+      color: 'border-[#2FBF71]',
+      badgeTone: 'text-[#4FD68C] bg-[#163324]',
     },
     {
       title: 'Pending Offers',
       value: data.pendingOffersCount ?? 0,
       rationale: 'What needs my action?',
       onClick: () => onNavigate('offers'),
-      color: 'border-l-4 border-l-blue-500',
+      color: 'border-blue-500/60',
+      badgeTone: 'text-blue-300 bg-blue-950/40',
     },
     {
       title: 'Active Deals',
       value: data.activeDealsCount ?? 0,
       rationale: 'What needs scheduling?',
       onClick: () => onNavigate('deals'),
-      color: 'border-l-4 border-l-amber-500',
+      color: 'border-amber-500/60',
+      badgeTone: 'text-amber-300 bg-amber-950/40',
     },
     {
       title: 'Upcoming Pickups',
       value: data.upcomingPickupsCount ?? 0,
       rationale: 'What needs logistics?',
       onClick: () => onNavigate('deals'),
-      color: 'border-l-4 border-l-purple-500',
+      color: 'border-teal-500/60',
+      badgeTone: 'text-teal-300 bg-teal-950/40',
     },
     {
       title: 'Completed (Month)',
       value: completedCount,
       rationale: 'Is this channel working?',
       onClick: () => onNavigate('deals'),
-      color: 'border-l-4 border-l-stone-500',
+      color: 'border-stone-500/60',
+      badgeTone: 'text-stone-300 bg-stone-900/60',
     },
     {
       title: 'Acceptance Rate',
       value: `${acceptancePercent}%`,
       rationale: 'Should I adjust pricing?',
       onClick: () => onNavigate('offers'),
-      color: 'border-l-4 border-l-teal-500',
+      color: 'border-[#2FBF71]',
+      badgeTone: 'text-[#4FD68C] bg-[#163324]',
     },
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6 text-[#F5EFE6]">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-stone-900">Operations Overview</h2>
-          <p className="text-xs text-stone-500">
-            Real-time supply matching and active transaction logistics
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#4FD68C]">
+            Live Operations &bull; Hadapsar Aggregation Cluster
+          </span>
+          <h2 className="text-2xl font-black text-white mt-0.5">Operations Overview</h2>
+          <p className="text-xs text-stone-400 mt-1">
+            Real-time informal supply matching and active transaction logistics
           </p>
         </div>
         <Button variant="primary" size="sm" onClick={() => onNavigate('available-lots')}>
-          Browse Open Lots
+          Browse Open Lots &rarr;
         </Button>
       </div>
 
       {/* 6 Metric Cards with Decision Support Rationale (FD-11) */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {metrics.map((m) => (
-          <Card
+          <div
             key={m.title}
-            variant="default"
             onClick={m.onClick}
-            className={`p-3.5 cursor-pointer hover:shadow-md transition-shadow ${m.color}`}
+            className={`p-4 rounded-2xl bg-[#12231B] border border-[#1E3A2B] hover:border-[#2FBF71]/50 cursor-pointer hover:shadow-xl transition-all ${m.color}`}
           >
-            <span className="text-[11px] font-semibold text-stone-500 block uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold text-stone-400 block uppercase tracking-wider">
               {m.title}
             </span>
-            <div className="text-2xl font-black text-stone-900 my-1 font-mono">{m.value}</div>
-            <span className="text-[10px] text-stone-400 italic block mt-1">
-              Supports: &ldquo;{m.rationale}&rdquo;
+            <div className="text-2xl font-black text-white my-1 font-mono">{m.value}</div>
+            <span className="text-[10px] text-stone-400 italic block mt-1 line-clamp-1">
+              &ldquo;{m.rationale}&rdquo;
             </span>
-          </Card>
+          </div>
         ))}
       </div>
 
       {/* Main split: New Lots vs Pending Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          <div className="rounded-3xl bg-[#12231B] border border-[#1E3A2B] overflow-hidden shadow-xl">
+            <div className="p-4 border-b border-[#1E3A2B] flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-stone-900">Recently Submitted Lots</h3>
-                <p className="text-xs text-stone-500">Available for bidding from local informal collectors</p>
+                <h3 className="text-sm font-bold text-white">Recently Submitted Lots</h3>
+                <p className="text-xs text-stone-400">Available for bidding from local informal collectors</p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => onNavigate('available-lots')}>
-                View All &rarr;
-              </Button>
-            </CardHeader>
-            <CardBody className="p-0">
-              {recentMatchingLots.length === 0 ? (
-                <div className="p-6 text-center text-xs text-stone-500">
-                  No new scrap lots currently open.
-                </div>
-              ) : (
-                <div className="divide-y divide-stone-100">
-                  {recentMatchingLots.slice(0, 5).map((lot) => (
+              <button
+                type="button"
+                onClick={() => onNavigate('available-lots')}
+                className="text-xs font-semibold text-[#4FD68C] hover:text-white flex items-center gap-1 transition-colors"
+              >
+                <span>View All</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+
+            {recentMatchingLots.length === 0 ? (
+              <div className="p-8 text-center text-xs text-stone-400">
+                No new scrap lots currently open.
+              </div>
+            ) : (
+              <div className="divide-y divide-[#1E3A2B]/60">
+                {recentMatchingLots.slice(0, 5).map((lot) => {
+                  const img = getMaterialImage(lot.materialName, lot.categoryName);
+                  return (
                     <div
                       key={lot.id}
                       onClick={() => onNavigate('available-lots')}
-                      className="p-4 flex items-center justify-between hover:bg-stone-50 cursor-pointer transition-colors"
+                      className="p-4 flex items-center justify-between hover:bg-[#163324]/40 cursor-pointer transition-colors gap-3"
                     >
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-stone-900">
-                            {lot.materialName}
-                          </span>
-                          <Badge tone="neutral">{lot.categoryName}</Badge>
-                          <span className="text-xs font-mono text-stone-400">({lot.id})</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-stone-500">
-                          <span>Weight: <strong className="text-stone-700">{lot.declaredWeightKg} kg</strong></span>
-                          <span>&bull;</span>
-                          <span>Condition: {lot.condition}</span>
-                          <span>&bull;</span>
-                          <span>Area: {lot.collectionArea}</span>
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <img
+                          src={img}
+                          alt={lot.materialName}
+                          className="w-14 h-14 rounded-xl object-cover border border-[#1E3A2B] shrink-0"
+                        />
+                        <div className="flex flex-col gap-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-white truncate">
+                              {lot.materialName}
+                            </span>
+                            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-[#0C1A14] text-[#4FD68C] border border-[#1E3A2B] shrink-0">
+                              {lot.categoryName}
+                            </span>
+                            <span className="text-[10px] font-mono text-stone-500 hidden sm:inline">({lot.id})</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-stone-400">
+                            <span>Weight: <strong className="text-white font-mono">{lot.declaredWeightKg} kg</strong></span>
+                            <span>&bull;</span>
+                            <span>Condition: <strong className="text-stone-300">{lot.condition}</strong></span>
+                            <span>&bull;</span>
+                            <span className="truncate">Area: {lot.collectionArea}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <PriceDisplay paise={lot.estimatedValuePaise} isEstimate size="sm" />
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardBody>
-          </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
-          <Card>
-            <CardHeader>
-              <h3 className="text-sm font-bold text-stone-900">Pending Actions</h3>
-              <Badge tone={pendingActions.length > 0 ? 'warning' : 'neutral'}>
+          <div className="rounded-3xl bg-[#12231B] border border-[#1E3A2B] overflow-hidden shadow-xl">
+            <div className="p-4 border-b border-[#1E3A2B] flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white">Pending Actions</h3>
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                pendingActions.length > 0
+                  ? 'bg-amber-950/40 text-amber-300 border-amber-600/40'
+                  : 'bg-[#163324] text-[#4FD68C] border-[#2FBF71]/30'
+              }`}>
                 {pendingActions.length} Actions
-              </Badge>
-            </CardHeader>
-            <CardBody className="p-0">
-              {pendingActions.length === 0 ? (
-                <div className="p-6 text-center text-xs text-stone-500">
-                  All active deals are up to date!
-                </div>
-              ) : (
-                <div className="divide-y divide-stone-100">
-                  {pendingActions.map((action) => (
-                    <div key={action.id} className="p-3.5 flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-stone-800">
-                          {action.title}
-                        </span>
-                        <span className="text-[10px] uppercase font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                          Required
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-[11px] text-stone-400 font-mono">Lot {action.lotId}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onNavigate('deals')}
-                        >
-                          Resolve
-                        </Button>
-                      </div>
+              </span>
+            </div>
+
+            {pendingActions.length === 0 ? (
+              <div className="p-8 text-center text-xs text-stone-400">
+                All active deals are up to date!
+              </div>
+            ) : (
+              <div className="divide-y divide-[#1E3A2B]/60">
+                {pendingActions.map((action) => (
+                  <div key={action.id} className="p-4 flex flex-col gap-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white">
+                        {action.title}
+                      </span>
+                      <span className="text-[9px] uppercase font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-600/40">
+                        Required
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardBody>
-          </Card>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-[11px] text-stone-400 font-mono">Lot {action.lotId}</span>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate('deals')}
+                        className="px-3 py-1 rounded-lg bg-[#163324] hover:bg-[#1E4330] border border-[#2FBF71]/30 text-xs font-bold text-[#4FD68C] transition-colors"
+                      >
+                        Resolve &rarr;
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -24,6 +24,16 @@ const envSchema = z.object({
   /** List endpoints get a looser budget. */
   LIST_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),
   LIST_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+
+  /** Production Cloud Services (Optional) */
+  MONGODB_URI: z.string().optional(),
+  SMS_PROVIDER_API_KEY: z.string().optional(),
+  S3_BUCKET_NAME: z.string().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
 });
 
 export type ApiConfig = {

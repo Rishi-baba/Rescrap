@@ -330,7 +330,7 @@ function transition(
   if (!result.ok) {
     throw new DemoError({
       code: 'ILLEGAL_TRANSITION',
-      message: result.message,
+      message: 'message' in result ? result.message : 'Transition rejected',
       field: 'state',
     });
   }

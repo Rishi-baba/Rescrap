@@ -13,10 +13,12 @@ const port = Number.parseInt(process.env['ADMIN_WEB_PORT'] ?? '5174', 10);
 export default defineConfig({
   plugins: [react()],
   server: {
+    host: true,
     port,
     strictPort: true,
   },
   preview: {
+    host: true,
     port,
     strictPort: true,
   },

@@ -29,7 +29,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   });
 
   await app.register(cors, {
-    origin: config.corsOrigins,
+    origin: true,
     credentials: false,
   });
 

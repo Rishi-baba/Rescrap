@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm --filter @rescrap/collector build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
