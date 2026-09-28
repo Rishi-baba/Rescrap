@@ -5,7 +5,7 @@
 import type { z } from 'zod';
 import { validationError } from './errors.js';
 
-export function parse<S extends z.ZodTypeAny>(schema: S, input: unknown): z.infer<S> {
+export function parse<S extends z.ZodTypeAny>(schema: S, input: unknown): z.output<S> {
   const result = schema.safeParse(input);
   if (!result.success) {
     const first = result.error.issues[0];
