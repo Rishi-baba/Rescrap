@@ -14,6 +14,8 @@ import {
   idempotencyKeySchema,
   money,
   scheduleHandoverSchema,
+  type Coordinates,
+  type WeightKg,
 } from '@rescrap/shared';
 import { envelope } from '../../lib/envelope.js';
 import { parse } from '../../lib/parse.js';
@@ -77,8 +79,12 @@ export async function recyclerRoutes(
     // which is the only layer that knows the estimate.
     return envelope(
       await serviceOf(request).makeOffer({
-        ...input,
+        lotId: input.lotId as string,
         amount: money(input.amount),
+        validUntil: input.validUntil as string,
+        idempotencyKey: input.idempotencyKey as string,
+        ...(input.message ? { message: input.message } : {}),
+        ...(input.justification ? { justification: input.justification } : {}),
       }),
     );
   });
@@ -90,7 +96,11 @@ export async function recyclerRoutes(
   app.post('/recycler/handovers/schedule', { preHandler: recyclerOnly }, async (request) => {
     const input = parse(scheduleHandoverSchema, request.body);
     return envelope(
-      await serviceOf(request).schedulePickup(input.lotId, input.scheduledFor, input.idempotencyKey),
+      await serviceOf(request).schedulePickup(
+        input.lotId as string,
+        input.scheduledFor as string,
+        input.idempotencyKey as string,
+      ),
     );
   });
 
@@ -98,11 +108,11 @@ export async function recyclerRoutes(
     const input = parse(executeHandoverSchema, request.body);
     return envelope(
       await serviceOf(request).executeHandover({
-        handoverId: input.handoverId,
-        finalWeightKg: input.finalWeightKg as never,
-        photoKeys: input.photoKeys,
-        location: input.location,
-        idempotencyKey: input.idempotencyKey,
+        handoverId: input.handoverId as string,
+        finalWeightKg: input.finalWeightKg as WeightKg,
+        photoKeys: input.photoKeys as string[],
+        location: input.location as Coordinates,
+        idempotencyKey: input.idempotencyKey as string,
       }),
     );
   });
