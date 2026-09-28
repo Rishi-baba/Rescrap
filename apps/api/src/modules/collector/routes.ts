@@ -43,7 +43,8 @@ export async function collectorRoutes(
     // Rule SB-9: the server computes the estimate. The client never sends one.
     return envelope(
       await serviceOf(request).createLot({
-        ...input,
+        collectionArea: input.collectionArea as string,
+        idempotencyKey: input.idempotencyKey as string,
         items: input.items.map((item) => ({
           materialId: item.materialId,
           materialConfirmed: item.materialConfirmed,
