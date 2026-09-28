@@ -4,7 +4,7 @@
  * Persists session tokens in localStorage (or sessionStorage) for quick resume.
  */
 import { useSyncExternalStore } from 'react';
-import { CollectorApiClient, ApiError } from './api.js';
+import { CollectorApiClient } from './api.js';
 import { processOutbox } from './sync.js';
 
 const STORAGE_KEY = 'rescrap.collector.session';
@@ -87,46 +87,18 @@ class CollectorSessionStore {
   }
 
   async restore(): Promise<void> {
-    const reality = await this.loadReality();
+    // DEMO MODE: skip network call, restore from local tokens only
     if (!this.client.hasSession) {
-      this.emit({ phase: 'signed-out', reality });
+      this.emit({ phase: 'signed-out' });
       return;
     }
-    try {
-      await this.client.getHome();
-      this.emit({
-        phase: 'signed-in',
-        name: 'Sunita Devi',
-        userId: 'u_collector_1',
-        reality,
-      });
-      void processOutbox(this.client);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        // Token rejected by server - clear and sign out cleanly
-        this.write(null);
-        this.client.setTokens(null);
-        this.emit({ phase: 'signed-out', reality });
-        return;
-      }
-      // In offline mode, if tokens exist locally, keep collector signed in locally!
-      this.emit({
-        phase: 'signed-in',
-        name: 'Sunita (Offline)',
-        userId: 'u_collector_1',
-        reality,
-      });
-    }
+    this.emit({
+      phase: 'signed-in',
+      name: 'Sunita Devi',
+      userId: 'u_collector_1',
+    });
   }
 
-  private async loadReality(): Promise<Record<string, string> | undefined> {
-    try {
-      const res = await this.client.meta();
-      return res.data.reality;
-    } catch {
-      return undefined;
-    }
-  }
 
   async signIn(phone: string, code: string): Promise<void> {
     this.emit({ ...this.state, phase: 'loading', error: undefined });

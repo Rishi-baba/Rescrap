@@ -1,20 +1,13 @@
 /**
- * Collector API Client.
- *
- * Implements communication with Fastify backend. If offline or network unavailable,
- * errors cleanly so caller can queue operations in offline-db outbox.
+ * Collector API Client — DEMO MODE (no backend required).
+ * All methods return realistic mock data instantly.
  */
-import { offlineDb } from './offline-db.js';
 
 export interface Envelope<T> {
   data: T;
   demo?: boolean;
   at?: string;
-  error?: {
-    code: string;
-    message: string;
-    field?: string;
-  };
+  error?: { code: string; message: string; field?: string };
 }
 
 export class ApiError extends Error {
@@ -86,17 +79,44 @@ export interface CollectorApiClientOptions {
   fetchImpl?: typeof fetch;
 }
 
+const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
+
+const DEMO_USER: CollectorUser = {
+  id: 'u_collector_1',
+  phone: '+91 98765 43210',
+  role: 'COLLECTOR',
+  name: 'Sunita Devi',
+};
+
+const DEMO_HOME: CollectorHomeData = {
+  activeLot: {
+    id: 'LOT00042',
+    materialName: 'Mixed E-Waste (IT Equipment)',
+    declaredWeightKg: 18.5,
+    lifecycleState: 'OFFERS_RECEIVED',
+    estimatedValuePaise: 185000,
+    offersCount: 3,
+  },
+  recentLots: [
+    { id: 'LOT00039', materialName: 'Copper Wire', declaredWeightKg: 6.2, lifecycleState: 'COMPLETED', createdAt: '2026-09-20T10:00:00Z' },
+    { id: 'LOT00035', materialName: 'Motherboards', declaredWeightKg: 4.8, lifecycleState: 'COMPLETED', createdAt: '2026-09-15T09:00:00Z' },
+    { id: 'LOT00031', materialName: 'Smartphones', declaredWeightKg: 2.1, lifecycleState: 'COMPLETED', createdAt: '2026-09-10T11:00:00Z' },
+  ],
+  priceTeasers: [
+    { materialName: 'Copper Wire', buyingPricePerKgPaise: 48000 },
+    { materialName: 'Motherboards', buyingPricePerKgPaise: 32000 },
+    { materialName: 'Lithium Batteries', buyingPricePerKgPaise: 22000 },
+    { materialName: 'Smartphones', buyingPricePerKgPaise: 55000 },
+  ],
+};
+
 export class CollectorApiClient {
-  private readonly baseUrl: string;
   private tokens: { accessToken: string; refreshToken: string } | null;
   private readonly onTokens?: (tokens: { accessToken: string; refreshToken: string } | null) => void;
-  private readonly fetchImpl: typeof fetch;
 
   constructor(options: CollectorApiClientOptions = {}) {
-    this.baseUrl = (options.baseUrl ?? 'http://127.0.0.1:3000').replace(/\/+$/, '');
     this.tokens = options.tokens ?? null;
     this.onTokens = options.onTokens;
-    this.fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
   }
 
   setTokens(tokens: { accessToken: string; refreshToken: string } | null): void {
@@ -108,165 +128,101 @@ export class CollectorApiClient {
     return Boolean(this.tokens?.accessToken);
   }
 
-  private async request<T>(path: string, init: RequestInit = {}): Promise<Envelope<T>> {
-    // If user has toggled simulated offline mode, reject immediately
-    if (!offlineDb.isOnline()) {
-      throw new ApiError('OFFLINE', 'No internet connection', 0);
-    }
-
-    const headers = new Headers(init.headers);
-    if (!headers.has('content-type') && init.body) {
-      headers.set('content-type', 'application/json');
-    }
-    if (this.tokens?.accessToken && !headers.has('authorization')) {
-      headers.set('authorization', `Bearer ${this.tokens.accessToken}`);
-    }
-
-    try {
-      let res = await this.fetchImpl(`${this.baseUrl}${path}`, {
-        ...init,
-        headers,
-      });
-
-      // If token expired (401), attempt rotating refresh and retry once
-      if (res.status === 401 && this.tokens?.refreshToken && !path.startsWith('/auth/')) {
-        try {
-          const refreshRes = await this.fetchImpl(`${this.baseUrl}/auth/refresh`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ refreshToken: this.tokens.refreshToken }),
-          });
-          if (refreshRes.ok) {
-            const refreshBody = (await refreshRes.json()) as Envelope<AuthTokens>;
-            if (refreshBody.data?.accessToken) {
-              this.setTokens({
-                accessToken: refreshBody.data.accessToken,
-                refreshToken: refreshBody.data.refreshToken,
-              });
-              headers.set('authorization', `Bearer ${refreshBody.data.accessToken}`);
-              res = await this.fetchImpl(`${this.baseUrl}${path}`, {
-                ...init,
-                headers,
-              });
-            }
-          } else {
-            this.setTokens(null);
-          }
-        } catch {
-          this.setTokens(null);
-        }
-      }
-
-      const body = (await res.json()) as Envelope<T>;
-      if (!res.ok || body.error) {
-        if (res.status === 401) {
-          this.setTokens(null);
-        }
-        const err = body.error ?? { code: 'UNKNOWN_ERROR', message: `Server error ${res.status}` };
-        throw new ApiError(err.code, err.message, res.status);
-      }
-      return body;
-    } catch (err) {
-      if (err instanceof ApiError) throw err;
-      throw new ApiError('NETWORK_ERROR', 'Network connection unavailable', 0);
-    }
-  }
-
-  async refresh(): Promise<AuthTokens | null> {
-    if (!this.tokens?.refreshToken) return null;
-    try {
-      const refreshRes = await this.fetchImpl(`${this.baseUrl}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ refreshToken: this.tokens.refreshToken }),
-      });
-      if (!refreshRes.ok) {
-        this.setTokens(null);
-        return null;
-      }
-      const body = (await refreshRes.json()) as Envelope<AuthTokens>;
-      this.setTokens(body.data);
-      return body.data;
-    } catch {
-      this.setTokens(null);
-      return null;
-    }
-  }
-
   async meta(): Promise<Envelope<{ demo: boolean; reality: Record<string, string> }>> {
-    return this.request('/meta');
+    await delay(100);
+    return { data: { demo: true, reality: { mode: 'DEMO', version: '1.0' } }, demo: true };
   }
 
-  async requestOtp(phone: string): Promise<Envelope<{ status: string; devOtp?: string }>> {
-    return this.request('/auth/otp/request', {
-      method: 'POST',
-      body: JSON.stringify({ phone, role: 'COLLECTOR' }),
-    });
+  async requestOtp(_phone: string): Promise<Envelope<{ status: string; devOtp?: string }>> {
+    await delay(600);
+    return { data: { status: 'SENT', devOtp: '123456' }, demo: true };
   }
 
-  async verifyOtp(phone: string, code: string): Promise<CollectorSessionData> {
-    const res = await this.request<CollectorSessionData>('/auth/otp/verify', {
-      method: 'POST',
-      body: JSON.stringify({ phone, role: 'COLLECTOR', code }),
-    });
-    this.setTokens({ accessToken: res.data.accessToken, refreshToken: res.data.refreshToken });
-    return res.data;
+  async verifyOtp(_phone: string, _code: string): Promise<CollectorSessionData> {
+    await delay(800);
+    const tokens = { accessToken: 'demo_access_token', refreshToken: 'demo_refresh_token' };
+    this.setTokens(tokens);
+    return { ...tokens, user: DEMO_USER };
   }
 
   async logout(): Promise<void> {
-    try {
-      if (this.tokens?.refreshToken) {
-        await this.request('/auth/logout', {
-          method: 'POST',
-          body: JSON.stringify({ refreshToken: this.tokens.refreshToken }),
-        });
-      }
-    } finally {
-      this.setTokens(null);
-    }
+    await delay(200);
+    this.setTokens(null);
   }
 
   async getHome(): Promise<Envelope<CollectorHomeData>> {
-    return this.request('/collector/home');
+    await delay(500);
+    return { data: DEMO_HOME, demo: true };
   }
 
-  async submitLot(payload: SubmitLotPayload): Promise<Envelope<{ id: string; state: string }>> {
-    return this.request('/collector/lots', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
+  async submitLot(_payload: SubmitLotPayload): Promise<Envelope<{ id: string; state: string }>> {
+    await delay(1000);
+    return { data: { id: 'LOT00099', state: 'SUBMITTED' }, demo: true };
   }
 
-  async getLot(id: string): Promise<Envelope<Record<string, unknown>>> {
-    return this.request(`/collector/lots/${encodeURIComponent(id)}`);
+  async getLot(_id: string): Promise<Envelope<Record<string, unknown>>> {
+    await delay(400);
+    return {
+      data: {
+        id: 'LOT00042',
+        state: 'OFFERS_RECEIVED',
+        materialName: 'Mixed E-Waste',
+        declaredWeightKg: 18.5,
+        estimatedValuePaise: 185000,
+        offers: [
+          { id: 'OFR001', recyclerName: 'GreenCycle Pvt Ltd', amountPaise: 195000, validUntil: '2026-10-05T00:00:00Z' },
+          { id: 'OFR002', recyclerName: 'EcoReclaim India', amountPaise: 180000, validUntil: '2026-10-04T00:00:00Z' },
+        ],
+      },
+      demo: true,
+    };
   }
 
-  async acceptOffer(offerId: string, idempotencyKey: string): Promise<Envelope<Record<string, unknown>>> {
-    return this.request(`/collector/offers/${encodeURIComponent(offerId)}/accept`, {
-      method: 'POST',
-      body: JSON.stringify({ idempotencyKey }),
-    });
+  async acceptOffer(_offerId: string, _idempotencyKey: string): Promise<Envelope<Record<string, unknown>>> {
+    await delay(800);
+    return { data: { status: 'ACCEPTED' }, demo: true };
   }
 
-  async verifyHandover(handoverId: string, acknowledged: boolean, idempotencyKey: string): Promise<Envelope<Record<string, unknown>>> {
-    return this.request(`/collector/handovers/${encodeURIComponent(handoverId)}/verify`, {
-      method: 'POST',
-      body: JSON.stringify({ acknowledged, idempotencyKey }),
-    });
+  async verifyHandover(_handoverId: string, _acknowledged: boolean, _idempotencyKey: string): Promise<Envelope<Record<string, unknown>>> {
+    await delay(800);
+    return { data: { status: 'VERIFIED' }, demo: true };
   }
 
   async getEarnings(): Promise<Envelope<{ confirmedTotal: number; pendingTotal: number; ledger: readonly Record<string, unknown>[] }>> {
-    return this.request('/collector/earnings');
+    await delay(400);
+    return {
+      data: {
+        confirmedTotal: 425000,
+        pendingTotal: 185000,
+        ledger: [
+          { lotId: 'LOT00039', material: 'Copper Wire', amountPaise: 165000, date: '2026-09-22T10:00:00Z', status: 'PAID' },
+          { lotId: 'LOT00035', material: 'Motherboards', amountPaise: 140000, date: '2026-09-17T09:00:00Z', status: 'PAID' },
+          { lotId: 'LOT00031', material: 'Smartphones', amountPaise: 120000, date: '2026-09-12T11:00:00Z', status: 'PAID' },
+        ],
+      },
+      demo: true,
+    };
   }
 
-  async getPriceBoard(area = 'all'): Promise<Envelope<readonly Record<string, unknown>[]>> {
-    return this.request(`/prices?area=${encodeURIComponent(area)}`);
+  async getPriceBoard(_area = 'all'): Promise<Envelope<readonly Record<string, unknown>[]>> {
+    await delay(300);
+    return {
+      data: [
+        { materialName: 'Copper Wire', buyingPricePerKgPaise: 48000, area: 'Pune' },
+        { materialName: 'Motherboards', buyingPricePerKgPaise: 32000, area: 'Pune' },
+        { materialName: 'Smartphones', buyingPricePerKgPaise: 55000, area: 'Pune' },
+        { materialName: 'Lithium Batteries', buyingPricePerKgPaise: 22000, area: 'Pune' },
+      ],
+      demo: true,
+    };
   }
 
-  async syncBatch(operations: readonly Record<string, unknown>[]): Promise<Envelope<{ results: readonly Record<string, unknown>[] }>> {
-    return this.request('/collector/sync/batch', {
-      method: 'POST',
-      body: JSON.stringify({ operations }),
-    });
+  async syncBatch(_operations: readonly Record<string, unknown>[]): Promise<Envelope<{ results: readonly Record<string, unknown>[] }>> {
+    await delay(300);
+    return { data: { results: [] }, demo: true };
+  }
+
+  async refresh(): Promise<AuthTokens | null> {
+    return this.tokens;
   }
 }

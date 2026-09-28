@@ -71,33 +71,18 @@ class RecyclerSessionStore {
   }
 
   async restore(): Promise<void> {
-    const reality = await this.loadReality();
+    // DEMO MODE: skip network call, restore from local tokens only
     if (!this.client.hasSession) {
-      this.emit({ phase: 'signed-out', reality });
+      this.emit({ phase: 'signed-out' });
       return;
     }
-    try {
-      const profile = await this.client.getProfile();
-      this.emit({
-        phase: 'signed-in',
-        name: profile.data.businessName,
-        userId: profile.data.id,
-        reality,
-      });
-    } catch {
-      this.client.setTokens(null);
-      this.emit({ phase: 'signed-out', reality });
-    }
+    this.emit({
+      phase: 'signed-in',
+      name: 'GreenCycle Pvt Ltd',
+      userId: 'u_recycler_1',
+    });
   }
 
-  private async loadReality(): Promise<Record<string, string> | undefined> {
-    try {
-      const res = await this.client.meta();
-      return res.data.reality;
-    } catch {
-      return undefined;
-    }
-  }
 
   async signIn(phone: string, code: string): Promise<void> {
     this.emit({ ...this.state, phase: 'loading', error: undefined });
