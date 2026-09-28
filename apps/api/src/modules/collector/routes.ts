@@ -11,6 +11,7 @@ import {
   createLotSchema,
   idempotencyKeySchema,
   submitLotSchema,
+  type WeightKg,
 } from '@rescrap/shared';
 import { envelope } from '../../lib/envelope.js';
 import { parse } from '../../lib/parse.js';
@@ -44,8 +45,13 @@ export async function collectorRoutes(
       await serviceOf(request).createLot({
         ...input,
         items: input.items.map((item) => ({
-          ...item,
-          declaredWeightKg: item.declaredWeightKg as never,
+          materialId: item.materialId,
+          materialConfirmed: item.materialConfirmed,
+          declaredWeightKg: item.declaredWeightKg as WeightKg,
+          condition: item.condition,
+          sourceType: item.sourceType,
+          photoKeys: item.photoKeys,
+          ...(item.notes ? { notes: item.notes } : {}),
         })),
       }),
     );
@@ -125,7 +131,10 @@ export async function collectorRoutes(
 
   app.post('/collector/classify', { preHandler: collectorOnly }, async (request) => {
     const input = parse(classifyMaterialSchema, request.body);
-    return envelope(await serviceOf(request).classifyMaterial(input));
+    return envelope(await serviceOf(request).classifyMaterial({
+      keywordHints: input.keywordHints ?? [],
+      ...(input.explicitMaterialKey ? { explicitMaterialKey: input.explicitMaterialKey } : {}),
+    }));
   });
 }
 
